@@ -447,8 +447,8 @@ td.wrap-cell{white-space:normal;min-width:170px;text-align:left;font-size:12.5px
   <div class="page-title">
     <span class="eyebrow">Relatório para o cliente</span>
     <h1>Orientações finais, <em>prontas para entregar</em></h1>
-    <p>Montado a partir das outras abas. Escreva suas observações no fim, copie o texto para WhatsApp ou e-mail, ou imprima pela cópia aberta no navegador.</p>
-    <div class="rep-tools"><button class="btn" id="btnCopy" type="button">Copiar texto do relatório</button><span class="hint" id="copyMsg" role="status"></span></div>
+    <p>Montado a partir das outras abas. Escreva suas observações no fim e baixe o PDF para enviar ao cliente, ou copie o texto para WhatsApp ou e-mail.</p>
+    <div class="rep-tools"><button class="btn btn-primary" id="btnPdf" type="button">Baixar relatório (PDF)</button><button class="btn" id="btnCopy" type="button">Copiar texto do relatório</button><span class="hint" id="copyMsg" role="status"></span></div>
   </div>
   <article class="report">
     <div id="resC"></div>
@@ -464,6 +464,8 @@ td.wrap-cell{white-space:normal;min-width:170px;text-align:left;font-size:12.5px
 <p class="foot">Simulação educativa com premissas constantes; não é recomendação de produto. Rentabilidade real entre 4% e 6% a.a.; o IR incide sobre o ganho nominal (real + inflação). Patrimônio e renda estão em reais de hoje. No regressivo, o IR segue o tempo de cada aporte (saem primeiro os mais antigos); no progressivo, a tabela anual somada à renda extra, com a parcela isenta a partir dos 65 anos. A restituição do PGBL é reinvestida no VGBL ao fim de cada ano. Isabel Abreu | Economista e Planejadora Financeira.</p>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 (()=>{
 const DEFAULTS={nome:"",idade:40,idadeApos:60,idadeFim:95,rendaDesejada:15000,modoRenda:"consumir",legado:500000,
@@ -722,7 +724,7 @@ function update(){
   renderA(p,res,best);renderB(p,res,best);renderG(p,G);renderC(p,res,best,G);
 }
 
-let reportText="";
+let reportText="",lastRep=null;
 function renderC(p,res,best,G){
   const sel=p.estrategia==="auto"?best:res.find(r=>r.strat===p.estrategia)||best;
   const s=sById(sel.strat);
@@ -809,7 +811,93 @@ function renderC(p,res,best,G){
     ...(p.obs?["","OBSERVAÇÕES",p.obs]:[]),"",
     "Valores em reais de hoje. Simulação com premissas constantes; não é garantia de rentabilidade.","",
     "Isabel Abreu | Economista e Planejadora Financeira"].join("\n");
+  lastRep={p,nome,hoje,sel,total,extraMedia,econ,st,marcos,stairD,nec,G,lead:$("resC").querySelector(".rep-lead").textContent.trim()};
 }
+/* ---------- PDF do relatório ---------- */
+let DL=null;
+try{if(window.claude&&typeof window.claude.use==="function")window.claude.use("downloads").then(x=>{DL=x}).catch(()=>{})}catch(_){}
+const pdfTxt=t=>String(t).replace(/→/g,"a").replace(/[−–]/g,"-").replace(/✓\s?/g,"").replace(/≈\s?/g,"cerca de ").replace(/ | /g," ");
+function buildPdf(R){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4"});
+  const NAVY=[15,30,51],INK=[30,34,40],MUTED=[91,101,116],GOLD=[156,117,54],GOLDS=[228,207,168],TERRA=[176,105,79],GREEN=[63,122,90],LINE=[226,216,201];
+  const p=R.p,LM=14,RM=196,BOT=268;let y=0;
+  const T=(t,x,yy,o)=>doc.text(pdfTxt(t),x,yy,o);
+  const need=h=>{if(y+h>BOT){doc.addPage();y=20}};
+  const h2=t=>{need(14);y+=4;doc.setFont("helvetica","bold");doc.setFontSize(12.5);doc.setTextColor(...NAVY);T(t,LM,y);y+=2.5;doc.setDrawColor(...GOLD);doc.setLineWidth(.4);doc.line(LM,y,LM+18,y);y+=6};
+  const para=(t,size=9.5,color=INK,style="normal",indent=0)=>{doc.setFont("helvetica",style);doc.setFontSize(size);doc.setTextColor(...color);
+    const ls=doc.splitTextToSize(pdfTxt(t),RM-LM-indent);ls.forEach(l=>{need(size*.45);doc.text(l,LM+indent,y);y+=size*.45});};
+  // cabeçalho
+  doc.setFillColor(...NAVY);doc.rect(0,0,210,30,"F");
+  doc.setTextColor(246,241,234);doc.setFont("times","bold");doc.setFontSize(18);doc.text("Isabel Abreu",LM,15);
+  doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(...GOLDS);doc.text("ECONOMISTA E PLANEJADORA FINANCEIRA",LM,21);
+  doc.setTextColor(246,241,234);doc.setFont("helvetica","bold");doc.setFontSize(14);T("Plano de aposentadoria",RM,15,{align:"right"});
+  doc.setFont("helvetica","normal");doc.setFontSize(9);T(R.hoje,RM,21,{align:"right"});
+  y=42;doc.setTextColor(...INK);doc.setFont("helvetica","bold");doc.setFontSize(15);T(R.nome,LM,y);y+=6;
+  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...MUTED);
+  T(`${p.idade} anos · aposentadoria aos ${p.idadeApos} · renda até os ${p.idadeFim}${p.modoRenda==="legado"?` · ${fmtK(p.legado)} para os dependentes`:p.modoRenda==="perpetua"?" · vivendo dos rendimentos":""}`,LM,y);y+=8;
+  para(R.lead,10.5);y+=4;
+  // números
+  const nums=[[`Patrimônio aos ${p.idadeApos}`,fmtK(R.sel.saldo),"em valores de hoje"],["Renda mensal",fmtBRL(R.total),`${fmtBRL(R.sel.rendaLiq)} previdência + ${fmtBRL(R.extraMedia)} extra`],["Economia de IR",R.econ>1?fmtBRL(R.econ):"-",R.econ>1?"por ano, com o PGBL":"sem dedução de PGBL"]];
+  const bw=(RM-LM-8)/3;need(24);
+  nums.forEach((n,i)=>{const x=LM+i*(bw+4);doc.setDrawColor(...GOLD);doc.setLineWidth(.6);doc.line(x,y,x+bw,y);
+    doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...MUTED);T(n[0].toUpperCase(),x,y+5);
+    doc.setFont("times","bold");doc.setFontSize(16);doc.setTextColor(...INK);T(n[1],x,y+12);
+    doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...MUTED);T(n[2],x,y+17)});
+  y+=24;
+  // escada
+  const D=R.stairD;
+  if(D){h2("Quanto acumular até a aposentadoria");
+    need(80);
+    const top3=[[`Patrimônio necessário aos ${p.idadeApos}`,fmtK(D.meta)],["Aporte necessário",fmtBRL(R.nec)+"/mês"],["Aporte atual",fmtBRL(p.aporte)+"/mês"]];
+    top3.forEach((n,i)=>{const x=LM+i*(bw+4);doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...MUTED);T(n[0].toUpperCase(),x,y);
+      doc.setFont("times","bold");doc.setFontSize(14);doc.setTextColor(...(i===2&&!D.noRumo?TERRA:INK));T(n[1],x,y+6.5)});
+    y+=14;
+    const H=48,base=y+H+6,n=D.pts.length,gap=4,cw=(RM-LM-gap*(n-1))/n,colW=Math.min(cw,30);
+    D.pts.forEach((pt,i)=>{const cx=LM+i*(cw+gap)+(cw-colW)/2,h=Math.max(1,pt.need/D.top*H),last=i===n-1;
+      doc.setFillColor(...(last?GOLD:GOLDS));doc.rect(cx,base-h,colW,h,"F");
+      const hn=Math.min(H+4,pt.now/D.top*H);doc.setDrawColor(...NAVY);doc.setLineWidth(.35);doc.setLineDashPattern([1.2,1],0);doc.line(cx-1,base-hn,cx+colW+1,base-hn);doc.setLineDashPattern([],0);
+      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...INK);T(fmtK(pt.need),cx+colW/2,base-h-2,{align:"center"});
+      doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(...MUTED);T(`${pt.a} anos`,cx+colW/2,base+5,{align:"center"});
+      const ok=pt.now>=pt.need-1;doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...(ok?GREEN:TERRA));T(fmtK(pt.now),cx+colW/2,base+9.5,{align:"center"})});
+    doc.setDrawColor(...LINE);doc.setLineWidth(.3);doc.line(LM,base,RM,base);
+    y=base+15;para(`Cada coluna é quanto precisa estar guardado em cada idade para chegar à meta. A linha tracejada e o valor abaixo da idade mostram onde você estaria com o aporte atual de ${fmtBRL(p.aporte)}/mês.`,8,MUTED);
+  }
+  // passos
+  h2("O que fazer, em ordem");
+  R.st.forEach((x,i)=>{need(14);doc.setFillColor(...NAVY);doc.circle(LM+2.6,y-1.2,2.6,"F");doc.setTextColor(246,241,234);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.text(String(i+1),LM+2.6,y-.1,{align:"center"});
+    doc.setTextColor(...INK);doc.setFontSize(10);const tl=doc.splitTextToSize(pdfTxt(x.t),RM-LM-9);tl.forEach(l=>{doc.text(l,LM+8,y);y+=4.6});
+    para(x.d,8.8,MUTED,"normal",8);y+=3});
+  const tbl=(head,body,cols,opts={})=>{doc.autoTable({startY:y,head:[head],body,theme:"grid",
+    styles:{font:"helvetica",fontSize:8.3,cellPadding:2.4,textColor:INK,lineColor:LINE,lineWidth:.2,overflow:"linebreak"},
+    headStyles:{fillColor:NAVY,textColor:[246,241,234]},columnStyles:cols,margin:{left:LM,right:210-RM,bottom:30,top:20},rowPageBreak:"avoid",...opts});
+    y=(doc.lastAutoTable?doc.lastAutoTable.finalY:y)+6};
+  // escala de aportes
+  if(R.G){h2("Escala de aportes por objetivo");
+    tbl(["Objetivo","Prazo","Aporte/mês","Atinge","Onde investir"],R.G.order.map(it=>[pdfTxt(it.nome),`${it.anos} ${it.anos===1?"ano":"anos"}`,pdfTxt(it.escTxt),`${Math.round(it.cob*100)}%`,pdfTxt(it.onde)]),
+      {0:{cellWidth:38,fontStyle:"bold"},1:{cellWidth:18},2:{cellWidth:40},3:{cellWidth:16},4:{cellWidth:70}});
+    R.G.fases.filter(f=>f.de<p.idadeApos).forEach(f=>{need(10);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...INK);T(`Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)} por mês`,LM,y);y+=4.3;
+      para(f.ativos.map(a=>`${a.nome} ${fmtBRL(a.v)}`).join(" · ")+(f.livre>.5?` · livre ${fmtBRL(f.livre)}`:""),8.5,MUTED);y+=2});
+  }
+  // projeção
+  h2("Projeção a cada 5 anos");
+  tbl(["Idade","Fase","Patrimônio","Renda mensal total"],R.marcos.map(m=>[`${m.a} anos`,m.fase,fmtBRL(m.saldo),m.renda==null?"-":fmtBRL(m.renda)]),{0:{cellWidth:30},1:{cellWidth:40},2:{halign:"right"},3:{halign:"right"}});
+  if(p.obs&&p.obs.trim()){h2("Observações da planejadora");para(p.obs,9.5)}
+  y+=2;para(`Premissas: rentabilidade real de ${fmtPct(p.rentReal/100,2)} a.a., inflação de ${fmtPct(p.infl/100,2)} a.a., taxa de administração de ${fmtPct(p.taxaAdm/100,2)} a.a., aportes ${p.reajusta===1?"corrigidos pela inflação":"fixos"}, renda extra de ${fmtBRL(p.outrasRendas)}/mês a partir dos ${p.outrasDesde} anos. Valores em reais de hoje. Simulação com premissas constantes e regras do IR de 2026; não é garantia de rentabilidade.`,7.8,MUTED);
+  const n=doc.getNumberOfPages();
+  for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont("helvetica","italic");doc.setFontSize(8);doc.setTextColor(...MUTED);
+    doc.text("Isabel Abreu — Economista e Planejadora Financeira · simulação educativa, não é recomendação de produto.",LM,284);
+    doc.text(`${i} / ${n}`,RM,284,{align:"right"})}
+  return doc.output("blob");
+}
+$("btnPdf").addEventListener("click",async()=>{const btn=$("btnPdf"),msg=$("copyMsg");if(!lastRep)return;
+  btn.disabled=true;const label=btn.textContent;btn.textContent="Gerando relatório…";msg.textContent="";
+  try{if(!window.jspdf)throw new Error("jspdf");
+    const blob=buildPdf(lastRep),filename=`Plano-de-aposentadoria-${(lastRep.p.nome||"cliente").trim().replace(/\s+/g,"-")}.pdf`;
+    if(DL){try{await DL.save({filename,data:blob})}catch(e){if(!(e&&e.code==="declined"))throw e}}
+    else{const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000)}
+  }catch(e){console.error(e);msg.textContent="Não foi possível gerar o PDF. Tente novamente."}
+  finally{btn.disabled=false;btn.textContent=label}});
+
 $("btnCopy").addEventListener("click",()=>{
   const msg=$("copyMsg");
   const fallback=()=>{const b=$("copyBuf");b.value=reportText;b.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}msg.textContent=ok?"Texto copiado.":"Não deu para copiar automaticamente. Selecione o relatório e copie."};
