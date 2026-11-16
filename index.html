@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de Previdência · Isabel Abreu</title><meta name="robots" content="noindex"><style>[hidden]{display:none!important}</style>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: cabeçalho com duas abas (Aposentadoria | PGBL x VGBL); em cada aba, dados à esquerda e resultado ao vivo à direita */
+:root{
+  --bg:#F6F1EA; --surface:#FFFDF9; --surface-2:#EFE7DB; --ink:#0F1E33; --muted:#5B6574; --line:#E2D8C9;
+  --gold:#9C7536; --gold-soft:#E4CFA8; --terra:#B0694F; --blue:#4A7699; --green:#3F7A5A; --danger:#B3412E;
+  --btn-bg:#0F1E33; --btn-fg:#F6F1EA; --band-bg:#0F1E33; --band-fg:#F6F1EA; --band-accent:#E4CFA8; --band-muted:#B9C0CA;
+  --c1:#0F1E33; --c2:#9C7536; --c3:#B0694F; --c4:#4A7699;
+  --shadow:0 1px 2px rgba(15,30,51,.06),0 8px 24px rgba(15,30,51,.05);
+  --f-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1626; --surface:#12233B; --surface-2:#182C47; --ink:#F3EDE4; --muted:#A3ADBB; --line:#26405F;
+  --gold:#D7B47A; --gold-soft:#E4CFA8; --terra:#D58F74; --blue:#86B0D0; --green:#7CC29A; --danger:#E7836F;
+  --btn-bg:#D7B47A; --btn-fg:#0F1E33; --band-bg:#182C47; --band-fg:#F3EDE4; --band-accent:#E4CFA8; --band-muted:#A3ADBB;
+  --c1:#F3EDE4; --c2:#D7B47A; --c3:#D58F74; --c4:#86B0D0;
+  --shadow:0 1px 2px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1626; --surface:#12233B; --surface-2:#182C47; --ink:#F3EDE4; --muted:#A3ADBB; --line:#26405F;
+  --gold:#D7B47A; --gold-soft:#E4CFA8; --terra:#D58F74; --blue:#86B0D0; --green:#7CC29A; --danger:#E7836F;
+  --btn-bg:#D7B47A; --btn-fg:#0F1E33; --band-bg:#182C47; --band-fg:#F3EDE4; --band-accent:#E4CFA8; --band-muted:#A3ADBB;
+  --c1:#F3EDE4; --c2:#D7B47A; --c3:#D58F74; --c4:#86B0D0;
+  --shadow:0 1px 2px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1 em,h2 em{font-style:italic;font-weight:400;color:var(--gold)}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1260px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.app-header{border-bottom:1px solid var(--line);background:var(--surface)}
+.app-header .wrap{display:flex;align-items:center;gap:20px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1.1}
+.brand b{font-family:var(--f-display);font-size:20px;font-weight:600}
+.brand span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tabs{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tabs a{text-decoration:none;color:var(--muted);font-weight:700;font-size:13.5px;padding:8px 18px;border-radius:999px;white-space:nowrap}
+.tabs a[aria-current=page]{background:var(--btn-bg);color:var(--btn-fg)}
+.head-tools{margin-left:auto;display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;border:1px solid var(--line);background:var(--surface);padding:8px 16px;font-weight:600;font-size:13px}
+.btn:hover{border-color:var(--gold)}
+
+.eyebrow{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.page-title{display:flex;flex-direction:column;gap:8px;padding-block:28px 20px;max-width:780px}
+.page-title h1{font-size:clamp(27px,3.6vw,38px)}
+.page-title p{color:var(--muted);max-width:66ch}
+
+.layout{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:26px;align-items:start;padding-bottom:40px}
+.form{display:flex;flex-direction:column;gap:16px;min-width:0}
+.results{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);min-width:0}
+.card>h2{font-size:19px;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card>h2 small{font-family:var(--f-body);font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.04em}
+.card>h2 .note{font-family:var(--f-body);font-size:12px;font-weight:500;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+.full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field>label,.field>.lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.hint{font-size:12px;color:var(--muted)}
+.affix{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--bg);transition:border-color .15s}
+.affix:focus-within{border-color:var(--gold)}
+.affix input,.affix select{flex:1;min-width:0;border:0;background:transparent;padding:10px 12px;font:inherit;color:var(--ink);outline:none;font-variant-numeric:tabular-nums}
+.affix .pre,.affix .post{color:var(--muted);font-size:13px;padding:0 12px;white-space:nowrap}
+.affix .pre{padding-right:0}
+.segmented{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--bg);width:max-content;max-width:100%}
+.segmented button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font-weight:600;font-size:13px;color:var(--muted)}
+.segmented button[aria-pressed=true]{background:var(--btn-bg);color:var(--btn-fg)}
+.range-row{display:flex;align-items:center;gap:12px}
+.range-row input[type=range]{flex:1;accent-color:var(--gold);min-width:0}
+.range-row output{font-family:var(--f-display);font-weight:600;font-size:20px;min-width:70px;text-align:right;font-variant-numeric:tabular-nums}
+.range-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+details.adv{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+details.adv summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+details.adv .grid{margin-top:12px}
+.sample{font-size:12.5px;color:var(--muted);background:var(--surface-2);border-radius:10px;padding:10px 12px}
+
+.verdict{background:var(--band-bg);color:var(--band-fg);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px}
+.verdict .eyebrow{color:var(--band-accent)}
+.verdict h2{font-size:clamp(21px,2.4vw,27px);line-height:1.22}
+.verdict h2 em{color:var(--band-accent)}
+.verdict p{color:var(--band-muted);font-size:14px;max-width:72ch}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:rgba(228,207,168,.25);border-radius:12px;overflow:hidden}
+.kpi{background:var(--band-bg);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi span{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--band-muted)}
+.kpi b{white-space:nowrap;font-family:var(--f-display);font-size:clamp(17px,1.7vw,21px);font-weight:600;font-variant-numeric:tabular-nums;color:var(--band-fg)}
+.kpi small{font-size:11.5px;color:var(--band-muted)}
+
+.tbl-wrap{overflow-x:auto}
+.tbl-scroll{max-height:440px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+th{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface)}
+.tbl-scroll th{position:sticky;top:0;z-index:1}
+.decl th{white-space:normal;min-width:104px;vertical-align:bottom}
+.decl td{padding-block:7px}
+th:first-child,td:first-child{text-align:left}
+td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tr.best td{background:var(--surface-2)}
+tr.best td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+tr.sum td{font-weight:700;border-top:1px solid var(--ink)}
+tr.sec td{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);padding-top:14px}
+td.win,th.win{background:var(--surface-2)}
+th.win{color:var(--ink)}
+.sname{display:flex;align-items:center;gap:8px;font-weight:600}
+.sname i{width:10px;height:10px;border-radius:3px;flex:none}
+.sub{display:block;font-size:11.5px;color:var(--muted);font-weight:500}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink)}
+.pill.win{background:var(--gold);color:var(--surface)}
+.delta-neg{color:var(--danger)} .delta-pos{color:var(--green)}
+.muted{color:var(--muted)}
+
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:10px;border-radius:2px}
+.legend i.ln{height:3px}
+
+.ir-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ir-box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);display:flex;flex-direction:column;gap:2px;min-width:0}
+.ir-box span{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.ir-box b{font-family:var(--f-display);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.ir-box small{font-size:12px;color:var(--muted)}
+
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:10px 12px;border-radius:10px;background:var(--surface-2)}
+.alert .dot{width:8px;height:8px;border-radius:50%;margin-top:7px;flex:none;background:var(--gold)}
+.alert.warn .dot{background:var(--terra)}
+.goal-bar{height:10px;border-radius:6px;background:var(--surface-2);overflow:hidden;display:flex;margin-block:10px}
+.goal-bar i{display:block;height:100%}
+.goal-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.goal-row b{color:var(--ink);font-variant-numeric:tabular-nums}
+.checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.check{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);font-size:13px;color:var(--muted);min-width:0}
+.check h3{font-family:var(--f-body);font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.foot{font-size:12px;color:var(--muted);padding-bottom:40px;max-width:90ch}
+
+@media (max-width:1240px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:620px){
+  .ir-grid,.checklist,.grid{grid-template-columns:minmax(0,1fr)}
+  .head-tools{margin-left:0}
+  .tabs{width:100%} .tabs a{flex:1;text-align:center;padding-inline:8px}
+}
+/* relatório */
+.rep-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+.report{max-width:900px;margin:0 auto 40px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding-block:clamp(22px,4vw,44px);padding-inline:clamp(18px,5vw,56px);display:flex;flex-direction:column;gap:28px}
+#resC{display:flex;flex-direction:column;gap:26px}
+.rep-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px}
+.rep-head h2{font-size:clamp(24px,3vw,32px)}
+.rep-head .meta{font-size:12.5px;color:var(--muted);text-align:right}
+.rep-lead{font-size:16px;max-width:68ch}
+.rep-lead em{font-family:var(--f-display);font-style:italic;color:var(--gold)}
+.rep-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rep-num{border-top:2px solid var(--gold);padding-top:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rep-num span{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rep-num b{font-family:var(--f-display);font-size:clamp(20px,2.4vw,26px);font-weight:600;font-variant-numeric:tabular-nums}
+.rep-num small{font-size:12px;color:var(--muted)}
+.rep-sec{display:flex;flex-direction:column;gap:12px}
+.rep-sec h3{font-size:19px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;counter-reset:st}
+.steps li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;counter-increment:st}
+.steps li::before{content:counter(st);width:28px;height:28px;border-radius:50%;background:var(--btn-bg);color:var(--btn-fg);display:grid;place-items:center;font-size:13px;font-weight:700}
+.steps b{display:block;font-size:15px}
+.steps p{font-size:14px;color:var(--muted);max-width:70ch}
+.rep-sec textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:12px;font:inherit;resize:vertical}
+.rep-sec textarea:focus{outline:none;border-color:var(--gold)}
+.rep-prem{font-size:12px;color:var(--muted)}
+.rep-sign{display:flex;flex-direction:column;border-top:1px solid var(--line);padding-top:14px}
+.rep-sign b{font-family:var(--f-display);font-size:18px;font-weight:600}
+.rep-sign span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:620px){.rep-nums{grid-template-columns:minmax(0,1fr)}.rep-head .meta{text-align:left}}
+@media print{
+  .app-header,.page-title,.foot,[data-view]:not(#page-relatorio){display:none!important}
+  #page-relatorio{display:block!important}
+  body{background:#fff}
+  .report{border:0;box-shadow:none;padding:0;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="app-header">
+  <div class="wrap">
+    <div class="brand"><b>Isabel Abreu</b><span>Economista e Planejadora Financeira</span></div>
+    <nav class="tabs" aria-label="Páginas do simulador">
+      <a href="#aposentadoria" data-page="aposentadoria">Aposentadoria</a>
+      <a href="#pgbl-vgbl" data-page="pgbl-vgbl">PGBL x VGBL e IR</a>
+      <a href="#relatorio" data-page="relatorio">Relatório</a>
+    </nav>
+    <div class="head-tools"><button class="btn" id="btnReset" type="button">Voltar ao exemplo</button></div>
+  </div>
+</header>
+
+<main class="wrap">
+<!-- ===================== PÁGINA 1: APOSENTADORIA ===================== -->
+<section id="page-aposentadoria" data-view>
+  <div class="page-title">
+    <span class="eyebrow">Projeção de aposentadoria</span>
+    <h1>Quanto o cliente terá e <em>quanto vai receber</em> por mês</h1>
+    <p>Patrimônio acumulado, renda da previdência somada às rendas extras e o demonstrativo ano a ano, tudo em valores de hoje.</p>
+  </div>
+  <div class="layout">
+    <form class="form" onsubmit="return false" autocomplete="off">
+      <p class="sample">Os campos vêm com um exemplo (profissional liberal de 40 anos). Troque pelos dados do cliente. As duas páginas usam os mesmos dados.</p>
+      <section class="card">
+        <h2><small>1</small>Cliente</h2>
+        <div class="grid">
+          <div class="field full"><label for="a-nome">Nome do cliente</label><div class="affix"><input id="a-nome" data-key="nome" data-k="text" placeholder="Opcional"></div></div>
+          <div class="field"><label for="a-idade">Idade atual</label><div class="affix"><input id="a-idade" data-key="idade" data-k="int" inputmode="numeric"><span class="post">anos</span></div></div>
+          <div class="field"><label for="a-idadeApos">Aposentar com</label><div class="affix"><input id="a-idadeApos" data-key="idadeApos" data-k="int" inputmode="numeric"><span class="post">anos</span></div></div>
+          <div class="field"><label for="a-idadeFim">Renda até os</label><div class="affix"><input id="a-idadeFim" data-key="idadeFim" data-k="int" inputmode="numeric"><span class="post">anos</span></div></div>
+          <div class="field"><label for="a-rendaDesejada">Renda desejada</label><div class="affix"><span class="pre">R$</span><input id="a-rendaDesejada" data-key="rendaDesejada" data-k="money" inputmode="decimal"><span class="post">/mês</span></div></div>
+          <div class="field full"><span class="lbl">Como usar o patrimônio</span>
+            <div class="segmented" data-seg="modoRenda"><button type="button" data-v="consumir">Consumir até a idade final</button><button type="button" data-v="perpetua">Viver só dos rendimentos</button></div></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2><small>2</small>Renda extra na aposentadoria</h2>
+        <div class="grid">
+          <div class="field"><label for="a-outras">Renda extra</label><div class="affix"><span class="pre">R$</span><input id="a-outras" data-key="outrasRendas" data-k="money" inputmode="decimal"><span class="post">/mês</span></div></div>
+          <div class="field"><label for="a-outrasDesde">A partir de</label><div class="affix"><input id="a-outrasDesde" data-key="outrasDesde" data-k="int" inputmode="numeric"><span class="post">anos</span></div></div>
+          <p class="hint full">INSS, regime próprio, aluguéis, pró-labore. Em valores de hoje. Entra no IR do regime progressivo.</p>
+        </div>
+      </section>
+      <section class="card">
+        <h2><small>3</small>Aportes</h2>
+        <div class="grid">
+          <div class="field"><label for="a-aporte">Aporte mensal</label><div class="affix"><span class="pre">R$</span><input id="a-aporte" data-key="aporte" data-k="money" inputmode="decimal"><span class="post">/mês</span></div></div>
+          <div class="field"><label for="a-extra">Aporte extra anual</label><div class="affix"><span class="pre">R$</span><input id="a-extra" data-key="aporteExtra" data-k="money" inputmode="decimal"><span class="post">/ano</span></div><span class="hint">Em dezembro (13º, bônus).</span></div>
+          <div class="field"><label for="a-inicial">Valor inicial</label><div class="affix"><span class="pre">R$</span><input id="a-inicial" data-key="inicial" data-k="money" inputmode="decimal"></div></div>
+          <div class="field"><label for="a-estrat">Estratégia</label><div class="affix"><select id="a-estrat" data-key="estrategia" data-k="text">
+            <option value="auto">A melhor (automático)</option><option value="mix">PGBL até 12% + VGBL</option><option value="vgbl">Só VGBL</option><option value="pgbl">Só PGBL</option><option value="fora">Fora da previdência</option></select></div></div>
+          <div class="field full"><span class="lbl">Reajustar os aportes pela inflação?</span>
+            <div class="segmented" data-seg="reajusta"><button type="button" data-v="1">Sim</button><button type="button" data-v="0">Não</button></div></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2><small>4</small>Premissas</h2>
+        <div class="grid">
+          <div class="field full"><label for="a-rent">Rentabilidade real (acima da inflação)</label>
+            <div class="range-row"><input type="range" id="a-rent" data-key="rentReal" data-k="range" min="4" max="6" step="0.25"><output id="a-rent-out" for="a-rent"></output></div>
+            <div class="range-scale"><span>4% conservador</span><span>5%</span><span>6% máximo</span></div></div>
+          <div class="field"><label for="a-infl">Inflação</label><div class="affix"><input id="a-infl" data-key="infl" data-k="pct" inputmode="decimal"><span class="post">% a.a.</span></div><span class="hint">Usada só para o IR sobre o ganho nominal.</span></div>
+          <div class="field"><label for="a-taxa">Taxa de adm. previdência</label><div class="affix"><input id="a-taxa" data-key="taxaAdm" data-k="pct" inputmode="decimal"><span class="post">% a.a.</span></div></div>
+        </div>
+      </section>
+    </form>
+    <div class="results" id="resA" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ===================== PÁGINA 2: PGBL x VGBL ===================== -->
+<section id="page-pgbl-vgbl" data-view hidden>
+  <div class="page-title">
+    <span class="eyebrow">PGBL x VGBL e declaração de IR</span>
+    <h1>Qual plano usar e <em>qual declaração</em> faz o cliente pagar menos</h1>
+    <p>Simplificada ou completa, quanto cabe no PGBL, quanto volta de restituição e como as estratégias se comparam com o mesmo aporte.</p>
+  </div>
+  <div class="layout">
+    <form class="form" onsubmit="return false" autocomplete="off">
+      <section class="card">
+        <h2><small>1</small>Rendimentos e deduções</h2>
+        <div class="grid">
+          <div class="field full"><label for="b-renda">Rendimentos tributáveis no ano</label><div class="affix"><span class="pre">R$</span><input id="b-renda" data-key="renda" data-k="money" inputmode="decimal"><span class="post">/ano</span></div><span class="hint">Salário com 13º, pró-labore, carnê-leão, aluguéis. Dividendos e rendimentos isentos não entram.</span></div>
+          <div class="field full"><span class="lbl">Contribui para INSS ou regime próprio?</span>
+            <div class="segmented" data-seg="contribui"><button type="button" data-v="1">Sim</button><button type="button" data-v="0">Não</button></div>
+            <span class="hint">Sem essa contribuição, o PGBL não pode ser deduzido.</span></div>
+          <div class="field"><label for="b-inss">INSS / previdência oficial</label><div class="affix"><span class="pre">R$</span><input id="b-inss" data-key="inss" data-k="money" inputmode="decimal"><span class="post">/ano</span></div></div>
+          <div class="field"><label for="b-dep">Dependentes</label><div class="affix"><input id="b-dep" data-key="dependentes" data-k="int" inputmode="numeric"></div></div>
+          <div class="field"><label for="b-edu">Educação</label><div class="affix"><span class="pre">R$</span><input id="b-edu" data-key="educacao" data-k="money" inputmode="decimal"><span class="post">/ano</span></div><span class="hint">Até R$ 3.561,50 por pessoa.</span></div>
+          <div class="field"><label for="b-saude">Saúde</label><div class="affix"><span class="pre">R$</span><input id="b-saude" data-key="saude" data-k="money" inputmode="decimal"><span class="post">/ano</span></div></div>
+          <div class="field"><label for="b-pensao">Pensão alimentícia</label><div class="affix"><span class="pre">R$</span><input id="b-pensao" data-key="pensao" data-k="money" inputmode="decimal"><span class="post">/ano</span></div></div>
+          <div class="field"><label for="b-livro">Livro-caixa</label><div class="affix"><span class="pre">R$</span><input id="b-livro" data-key="livroCaixa" data-k="money" inputmode="decimal"><span class="post">/ano</span></div></div>
+          <div class="field"><label for="b-pgblEx">PGBL / Funpresp atual</label><div class="affix"><span class="pre">R$</span><input id="b-pgblEx" data-key="pgblExistente" data-k="money" inputmode="decimal"><span class="post">/ano</span></div></div>
+          <div class="field"><label for="b-irPago">IR já pago no ano</label><div class="affix"><span class="pre">R$</span><input id="b-irPago" data-key="irPago" data-k="money" inputmode="decimal"></div><span class="hint">Retido na fonte + carnê-leão.</span></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2><small>2</small>Plano de aportes</h2>
+        <div class="grid">
+          <div class="field"><label for="b-aporte">Aporte mensal</label><div class="affix"><span class="pre">R$</span><input id="b-aporte" data-key="aporte" data-k="money" inputmode="decimal"><span class="post">/mês</span></div></div>
+          <div class="field"><label for="b-extra">Aporte extra anual</label><div class="affix"><span class="pre">R$</span><input id="b-extra" data-key="aporteExtra" data-k="money" inputmode="decimal"><span class="post">/ano</span></div></div>
+          <div class="field"><label for="b-taxaFora">Custo do investimento fora</label><div class="affix"><input id="b-taxaFora" data-key="taxaFora" data-k="pct" inputmode="decimal"><span class="post">% a.a.</span></div></div>
+          <div class="field"><label for="b-taxa">Taxa de adm. previdência</label><div class="affix"><input id="b-taxa" data-key="taxaAdm" data-k="pct" inputmode="decimal"><span class="post">% a.a.</span></div></div>
+          <div class="field full"><span class="lbl">Reinvestir a restituição do PGBL?</span>
+            <div class="segmented" data-seg="reinveste"><button type="button" data-v="1">Sim</button><button type="button" data-v="0">Não</button></div>
+            <span class="hint">Sem reinvestir, a vantagem do PGBL vira consumo e some da conta.</span></div>
+        </div>
+        <details class="adv">
+          <summary>Premissas da tabela do IR</summary>
+          <div class="grid">
+            <div class="field"><label for="b-cap">Teto do desconto simplificado</label><div class="affix"><span class="pre">R$</span><input id="b-cap" data-key="capSimpl" data-k="money" inputmode="decimal"></div></div>
+            <div class="field"><label for="b-dedDep">Dedução por dependente</label><div class="affix"><span class="pre">R$</span><input id="b-dedDep" data-key="dedDep" data-k="money" inputmode="decimal"></div></div>
+          </div>
+          <p class="hint" style="margin-top:10px">Tabela anual 2026 com o redutor da Lei 15.270/2025 (imposto zerado até R$ 60 mil/ano, redução decrescente até R$ 88,2 mil).</p>
+        </details>
+      </section>
+    </form>
+    <div class="results" id="resB" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ===================== PÁGINA 3: RELATÓRIO ===================== -->
+<section id="page-relatorio" data-view hidden>
+  <div class="page-title">
+    <span class="eyebrow">Relatório para o cliente</span>
+    <h1>Orientações finais, <em>prontas para entregar</em></h1>
+    <p>Montado a partir das outras duas abas. Escreva suas observações no fim, copie o texto para WhatsApp ou e-mail, ou imprima pela cópia aberta no navegador.</p>
+    <div class="rep-tools"><button class="btn" id="btnCopy" type="button">Copiar texto do relatório</button><span class="hint" id="copyMsg" role="status"></span></div>
+  </div>
+  <article class="report">
+    <div id="resC"></div>
+    <section class="rep-sec">
+      <h3>Observações da planejadora</h3>
+      <textarea id="c-obs" data-key="obs" data-k="text" rows="4" placeholder="Ex.: portar o PGBL antigo, revisar o seguro de vida, conversar sobre o perfil de investimento."></textarea>
+    </section>
+    <footer class="rep-sign"><b>Isabel Abreu</b><span>Economista e Planejadora Financeira</span></footer>
+  </article>
+  <textarea id="copyBuf" aria-hidden="true" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px"></textarea>
+</section>
+
+<p class="foot">Simulação educativa com premissas constantes; não é recomendação de produto. Rentabilidade real entre 4% e 6% a.a.; o IR incide sobre o ganho nominal (real + inflação). Patrimônio e renda estão em reais de hoje. No regressivo, o IR segue o tempo de cada aporte (saem primeiro os mais antigos); no progressivo, a tabela anual somada à renda extra, com a parcela isenta a partir dos 65 anos. A restituição do PGBL é reinvestida no VGBL ao fim de cada ano. Isabel Abreu | Economista e Planejadora Financeira.</p>
+</main>
+
+<script>
+(()=>{
+const DEFAULTS={nome:"",idade:40,idadeApos:60,idadeFim:95,rendaDesejada:25000,modoRenda:"consumir",
+  outrasRendas:4000,outrasDesde:65,aporte:4000,aporteExtra:0,inicial:50000,estrategia:"auto",reajusta:1,
+  rentReal:4,infl:4,taxaAdm:0.6,taxaFora:0.2,
+  renda:300000,contribui:1,inss:11800,dependentes:2,educacao:20000,saude:18000,pensao:0,livroCaixa:0,pgblExistente:0,irPago:58000,
+  reinveste:1,capSimpl:17640,dedDep:2275.08,obs:""};
+
+const $=id=>document.getElementById(id);
+const fmtBRL=(v,d=0)=>(v<0?"−":"")+"R$ "+Math.abs(isFinite(v)?v:0).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtK=v=>{const a=Math.abs(v);if(a>=1e6)return "R$ "+(v/1e6).toLocaleString("pt-BR",{maximumFractionDigits:2})+" mi";if(a>=1e3)return "R$ "+(v/1e3).toLocaleString("pt-BR",{maximumFractionDigits:0})+" mil";return fmtBRL(v)};
+const fmtPct=(v,d=1)=>(v*100).toLocaleString("pt-BR",{maximumFractionDigits:d})+"%";
+const parse=s=>{s=String(s).trim().replace(/[^\d,.-]/g,"");if(!s)return 0;if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");const n=parseFloat(s);return isFinite(n)?n:0};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const STORE="simPrevIsabel.v2";
+let state={...DEFAULTS};
+try{const s=JSON.parse(localStorage.getItem(STORE)||"null");if(s)state={...DEFAULTS,...s}}catch(e){}
+state.rentReal=Math.min(6,Math.max(4,+state.rentReal||4));
+
+/* ---------- formulário ---------- */
+const fields=[...document.querySelectorAll("[data-key]")];
+function showField(el){const k=el.dataset.k,v=state[el.dataset.key];
+  if(k==="money")el.value=(+v||0).toLocaleString("pt-BR",{maximumFractionDigits:2});
+  else if(k==="pct")el.value=String(v).replace(".",",");
+  else el.value=v??"";
+  if(k==="range")$(el.id+"-out").textContent=fmtPct(v/100,2)+" a.a.";}
+function fillForm(except){
+  fields.forEach(el=>{if(el!==except)showField(el)});
+  document.querySelectorAll("[data-seg]").forEach(g=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(state[g.dataset.seg])))));
+}
+fields.forEach(el=>{
+  const ev=el.tagName==="SELECT"?"change":"input";
+  el.addEventListener(ev,()=>{const k=el.dataset.k;state[el.dataset.key]=(k==="text")?el.value:parse(el.value);
+    if(k==="range")state[el.dataset.key]=+el.value;
+    fillForm(el);if(k==="range")showField(el);update()});
+  el.addEventListener("blur",()=>showField(el));
+});
+document.querySelectorAll("[data-seg]").forEach(g=>g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  const v=b.dataset.v;state[g.dataset.seg]=/^\d+$/.test(v)?+v:v;fillForm();update()}));
+$("btnReset").addEventListener("click",()=>{state={...DEFAULTS};fillForm();update()});
+
+/* ---------- abas (hash) ---------- */
+document.querySelectorAll(".tabs a").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();show(a.dataset.page);window.scrollTo(0,0);try{history.replaceState(null,"","#"+a.dataset.page)}catch(err){}}));
+function route(){show(location.hash.replace("#",""))}
+function show(h){const page=["pgbl-vgbl","relatorio"].includes(h)?h:"aposentadoria";
+  document.querySelectorAll("[data-view]").forEach(v=>v.hidden=v.id!=="page-"+page);
+  document.querySelectorAll(".tabs a").forEach(a=>a.dataset.page===page?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));}
+window.addEventListener("hashchange",()=>{route();window.scrollTo(0,0)});
+
+/* ---------- IR ---------- */
+const TAB=[[29145.60,0,0],[33919.80,.075,2185.92],[45012.60,.15,4729.92],[55976.16,.225,8105.88],[Infinity,.275,10904.76]];
+function irTabela(base){if(base<=0)return 0;for(const [lim,a,d] of TAB)if(base<=lim)return Math.max(0,base*a-d);return 0}
+function reducao(rend,imp){let r=0;if(rend<=60000)r=2694.15;else if(rend<=88200)r=8429.73-0.095575*rend;return Math.min(imp,Math.max(0,r))}
+function imposto(rend,ded){const t=irTabela(rend-ded);return t-reducao(rend,t)}
+const EDU_LIM=3561.50, ISENTO65=1903.98*12;
+
+function limitePGBL(p){return p.contribui===1?Math.max(0,0.12*p.renda-p.pgblExistente):0}
+function detalhe(p,pgblNovo){
+  const rend=p.renda, dep=p.dependentes*p.dedDep, edu=Math.min(p.educacao,EDU_LIM*(1+p.dependentes));
+  const pgbl=p.contribui===1?Math.min(p.pgblExistente+pgblNovo,0.12*rend):0;
+  const ded=p.inss+dep+edu+p.saude+p.pensao+p.livroCaixa+pgbl;
+  const base=Math.max(0,rend-ded), tab=irTabela(base), red=reducao(rend,tab), dev=tab-red;
+  return {rend,inss:p.inss,dep,edu,saude:p.saude,pensao:p.pensao,livro:p.livroCaixa,pgbl,simpl:0,ded,base,tab,red,dev,ef:rend?dev/rend:0,saldo:p.irPago-dev};
+}
+function detalheSimpl(p){const rend=p.renda,d=Math.min(0.2*rend,p.capSimpl),base=Math.max(0,rend-d),tab=irTabela(base),red=reducao(rend,tab),dev=tab-red;
+  return {rend,inss:0,dep:0,edu:0,saude:0,pensao:0,livro:0,pgbl:0,simpl:d,ded:d,base,tab,red,dev,ef:rend?dev/rend:0,saldo:p.irPago-dev}}
+function melhorIR(p,pgblNovo){return Math.min(detalhe(p,pgblNovo).dev,detalheSimpl(p).dev)}
+function economiaIR(p,pgblNovo){return melhorIR(p,0)-melhorIR(p,pgblNovo)}
+
+/* ---------- simulação (mensal, nominal; resultados em reais de hoje) ---------- */
+function regressiva(m){return m<24?.35:m<48?.30:m<72?.25:m<96?.20:m<120?.15:.10}
+function simulate(p,strat,regime,aporteMensal){
+  const N=Math.max(0,Math.round((p.idadeApos-p.idade)*12)), M=Math.max(1,Math.round((p.idadeFim-p.idadeApos)*12));
+  const pim=Math.pow(1+p.infl/100,1/12)-1;
+  const nom=(1+p.rentReal/100)*(1+p.infl/100)-1;
+  const iPrev=Math.pow(Math.max(.0001,1+nom-p.taxaAdm/100),1/12)-1;
+  const iFora=Math.pow(Math.max(.0001,1+nom-p.taxaFora/100),1/12)-1;
+  const mk=i=>({i,price:1,lots:[]});
+  const pots={PGBL:mk(iPrev),VGBL:mk(iPrev),FORA:mk(iFora)};
+  const add=(pot,amt,t)=>{if(amt>0)pot.lots.push({t,u:amt/pot.price,cost:pot.price})};
+  const val=pot=>pot.lots.reduce((s,l)=>s+l.u,0)*pot.price;
+  const tot=()=>val(pots.PGBL)+val(pots.VGBL)+val(pots.FORA);
+  const lim=limitePGBL(p);
+  const usaPGBL=strat==="mix"||strat==="pgbl";
+  let I=1,Iy=1,econTotal=0,pgblAno=0,apAno=0,restAno=0,pgblMes0=0,vgblMes0=0;
+  const path=[{age:p.idade,v:p.inicial}], acc=[], dec=[];
+  add(strat==="pgbl"?pots.PGBL:strat==="fora"?pots.FORA:pots.VGBL,p.inicial,0);
+  for(let m=0;m<N;m++){
+    if(m%12===0)Iy=I;
+    const Ic=p.reajusta===1?I:1;
+    let ap=aporteMensal*Ic; if(m%12===11)ap+=p.aporteExtra*Ic;
+    let pg=0,vg=0,fo=0;
+    if(strat==="mix"){const teto=m%12===11?lim*Iy-pgblAno:lim*Iy/12;pg=Math.max(0,Math.min(ap,teto));vg=ap-pg}
+    else if(strat==="pgbl")pg=ap; else if(strat==="vgbl")vg=ap; else fo=ap;
+    if(m===0){pgblMes0=pg;vgblMes0=vg}
+    add(pots.PGBL,pg,m);add(pots.VGBL,vg,m);add(pots.FORA,fo,m);
+    pgblAno+=pg; apAno+=ap/I;
+    for(const k in pots)pots[k].price*=1+pots[k].i;
+    I*=1+pim;
+    if(m%12===11||m===N-1){
+      let e=0;
+      if(usaPGBL){e=economiaIR(p,pgblAno/Iy)*Iy;econTotal+=e/Iy;if(p.reinveste===1)add(pots.VGBL,e,m+1)}
+      restAno=e/I;
+      acc.push({age:p.idade+Math.floor(m/12),aporte:apAno,rest:p.reinveste===1?restAno:0,restBruta:restAno,saldo:tot()/I});
+      path.push({age:p.idade+(m+1)/12,v:tot()/I});
+      pgblAno=0;apAno=0;
+    }
+  }
+  const IN=I, saldo=tot()/IN;
+  const W={};
+  for(const k in pots){const B=val(pots[k])/IN;const r=(1+pots[k].i)/(1+pim)-1;
+    W[k]=B<=0?0:p.modoRenda==="perpetua"?(r>0?B*r:B/M):(Math.abs(r)<1e-9?B/M:B*r/(1-Math.pow(1+r,-M)))}
+  let liqTot=0,irTot=0,brutoTot=0,yb=0,yi=0,yl=0,ySaldo=saldo;
+  for(let m=0;m<M;m++){
+    const tNow=N+m, age=p.idadeApos+m/12;
+    if(m%12===0)ySaldo=tot()/I;
+    let irMes=0,trib=0,saque=0;
+    for(const k in pots){const pot=pots[k];let need=W[k]*I;
+      while(need>1e-9&&pot.lots.length){const l=pot.lots[0],lv=l.u*pot.price,take=Math.min(need,lv);
+        const ganho=Math.max(0,take*(1-l.cost/pot.price)), base=k==="PGBL"?take:ganho;
+        if(k==="FORA")irMes+=.15*ganho; else if(regime==="reg")irMes+=regressiva(tNow-l.t)*base; else trib+=base;
+        saque+=take;l.u-=take/pot.price;need-=take;if(l.u*pot.price<1e-6)pot.lots.shift();}}
+    if(regime==="prog"&&trib>0){
+      const outra=(age>=p.outrasDesde?p.outrasRendas:0)*12, prev=trib/I*12, isen=age>=65?ISENTO65:0;
+      const calc=o=>{const rt=Math.max(0,o-isen);return imposto(rt,Math.min(.2*rt,p.capSimpl))};
+      irMes+=Math.max(0,calc(outra+prev)-calc(outra))/12*I;}
+    const b=saque/I,ir=irMes/I;
+    liqTot+=b-ir;irTot+=ir;brutoTot+=b;yb+=b;yi+=ir;yl+=b-ir;
+    for(const k in pots)pots[k].price*=1+pots[k].i;
+    I*=1+pim;
+    if(m%12===11||m===M-1){const n=(m%12)+1;const a=p.idadeApos+Math.floor(m/12);
+      const extra=a>=p.outrasDesde?p.outrasRendas:0;
+      dec.push({age:a,saldo:ySaldo,bruto:yb/n,ir:yi/n,liq:yl/n,extra,total:yl/n+extra});
+      path.push({age:p.idadeApos+(m+1)/12,v:tot()/I});yb=yi=yl=0;}
+  }
+  return {strat,regime,saldo,rendaBruta:brutoTot/M,rendaLiq:liqTot/M,irTot,econTotal,pgblMes:pgblMes0,vgblMes:vgblMes0,path,acc,dec,aliqEf:brutoTot?irTot/brutoTot:0,final:tot()/I};
+}
+
+const STRATS=[
+  {id:"mix",name:"PGBL até 12% + VGBL",color:"var(--c2)",desc:"PGBL até o limite dedutível, o restante no VGBL"},
+  {id:"vgbl",name:"Só VGBL",color:"var(--c4)",desc:"Tudo no VGBL, sem dedução no IR"},
+  {id:"pgbl",name:"Só PGBL",color:"var(--c3)",desc:"Tudo no PGBL, mesmo acima de 12%"},
+  {id:"fora",name:"Fora da previdência",color:"var(--c1)",desc:"Fundo, CDB ou Tesouro, IR de 15% sobre o ganho"}];
+const sById=id=>STRATS.find(s=>s.id===id);
+function bestOf(p,s,ap){if(s==="fora")return simulate(p,"fora","reg",ap);const a=simulate(p,s,"reg",ap),b=simulate(p,s,"prog",ap);return b.rendaLiq>a.rendaLiq?b:a}
+function escolher(res){let b=[...res].sort((x,y)=>y.rendaLiq-x.rendaLiq)[0];const mix=res.find(r=>r.strat==="mix");if(b.strat==="pgbl"&&mix.rendaLiq>=b.rendaLiq-1)b=mix;return b}
+function aporteNecessario(p,s,alvo){
+  if(alvo<=0)return 0;
+  const f=ap=>bestOf(p,s,ap).rendaLiq;
+  let lo=0,hi=Math.max(1000,p.aporte*2);
+  for(let k=0;k<16&&f(hi)<alvo;k++)hi*=2;
+  if(f(hi)<alvo)return Infinity;
+  for(let k=0;k<24;k++){const mid=(lo+hi)/2;if(f(mid)>=alvo)hi=mid;else lo=mid}
+  return hi;
+}
+const regName=r=>r.strat==="fora"?"IR 15%":r.regime==="reg"?"Regressivo":"Progressivo";
+
+/* ---------- gráficos (SVG, cores por style para funcionar em qualquer navegador) ---------- */
+function niceStep(v){const p=Math.pow(10,Math.floor(Math.log10(v||1)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
+const T=(x,y,s,a="end",st="")=>`<text x="${x}" y="${y}" text-anchor="${a}" style="fill:var(--muted);font-size:11px;font-family:var(--f-body);${st}">${s}</text>`;
+function axes(W,H,L,R,Tp,B,top,step,fmt){let g="";for(let v=0;v<=top+1e-6;v+=step){const y=Tp+(1-v/top)*(H-Tp-B);g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" style="stroke:var(--line);stroke-width:1"/>`+T(L-8,y+4,fmt(v))}return g}
+function chartPatrimonio(series,p){
+  const W=680,H=270,L=66,R=14,Tp=16,B=30;
+  const maxV=Math.max(1,...series.flatMap(s=>s.path.map(x=>x.v)));
+  const step=niceStep(maxV/4),top=Math.ceil(maxV/step)*step;
+  const a0=p.idade,a1=p.idadeFim,x=a=>L+(a-a0)/(a1-a0||1)*(W-L-R),y=v=>Tp+(1-v/top)*(H-Tp-B);
+  let g=axes(W,H,L,R,Tp,B,top,step,fmtK);
+  for(let a=Math.ceil(a0/5)*5;a<=a1;a+=5)g+=T(x(a),H-10,a,"middle");
+  const xa=x(p.idadeApos);
+  g+=`<line x1="${xa}" x2="${xa}" y1="${Tp}" y2="${H-B}" style="stroke:var(--gold);stroke-width:1;stroke-dasharray:4 4"/>`+T(xa+6,Tp+10,"aposentadoria","start","fill:var(--gold);font-weight:700");
+  series.forEach((s,i)=>{const d=s.path.map((pt,j)=>(j?"L":"M")+x(pt.age).toFixed(1)+" "+y(pt.v).toFixed(1)).join(" ");
+    if(s.area)g+=`<path d="${d} L${x(s.path[s.path.length-1].age).toFixed(1)} ${y(0)} L${x(s.path[0].age).toFixed(1)} ${y(0)} Z" style="fill:${s.color};opacity:.12"/>`;
+    g+=`<path d="${d}" style="fill:none;stroke:${s.color};stroke-width:${s.w||2};stroke-linejoin:round;${s.dash?"stroke-dasharray:6 5":""}"/>`});
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Patrimônio por idade">${g}</svg>`;
+}
+function chartRenda(dec,p){
+  const W=680,H=260,L=66,R=14,Tp=16,B=30;
+  const maxV=Math.max(1,p.rendaDesejada,...dec.map(d=>d.total));
+  const step=niceStep(maxV/4),top=Math.ceil(maxV*1.05/step)*step;
+  const n=dec.length,bw=(W-L-R)/n,y=v=>Tp+(1-v/top)*(H-Tp-B);
+  let g=axes(W,H,L,R,Tp,B,top,step,fmtK);
+  dec.forEach((d,i)=>{const x0=L+i*bw+bw*.12,w=Math.max(1,bw*.76);
+    const yl=y(d.liq),ye=y(d.liq+d.extra);
+    g+=`<rect x="${x0.toFixed(1)}" y="${yl.toFixed(1)}" width="${w.toFixed(1)}" height="${(y(0)-yl).toFixed(1)}" style="fill:var(--gold)"><title>${d.age} anos: previdência ${fmtBRL(d.liq)}</title></rect>`;
+    if(d.extra>0)g+=`<rect x="${x0.toFixed(1)}" y="${ye.toFixed(1)}" width="${w.toFixed(1)}" height="${(yl-ye).toFixed(1)}" style="fill:var(--blue)"><title>${d.age} anos: renda extra ${fmtBRL(d.extra)}</title></rect>`;
+    if(d.age%5===0||i===0)g+=T(L+i*bw+bw/2,H-10,d.age,"middle");});
+  if(p.rendaDesejada>0){const ym=y(p.rendaDesejada);g+=`<line x1="${L}" x2="${W-R}" y1="${ym}" y2="${ym}" style="stroke:var(--terra);stroke-width:2;stroke-dasharray:6 4"/>`+T(W-R,ym-6,"meta "+fmtBRL(p.rendaDesejada),"end","fill:var(--terra);font-weight:700")}
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Renda mensal por idade na aposentadoria">${g}</svg>`;
+}
+
+/* ---------- render ---------- */
+let demoTab="renda";
+function update(){
+  try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}
+  const p={...state};
+  if(!(p.idadeApos>p.idade)||!(p.idadeFim>p.idadeApos)){const msg=`<div class="card"><p>Confira as idades: a aposentadoria vem depois da idade atual, e a idade final depois da aposentadoria.</p></div>`;$("resA").innerHTML=msg;$("resB").innerHTML=msg;return}
+  const res=STRATS.map(s=>bestOf(p,s.id,p.aporte));
+  const best=escolher(res);
+  renderA(p,res,best);renderB(p,res,best);renderC(p,res,best);
+}
+
+let reportText="";
+function renderC(p,res,best){
+  const sel=p.estrategia==="auto"?best:res.find(r=>r.strat===p.estrategia)||best;
+  const s=sById(sel.strat);
+  const usaPGBL=sel.strat==="mix"||sel.strat==="pgbl";
+  const lim=limitePGBL(p), planejado=usaPGBL?Math.min(p.aporte*12+p.aporteExtra,lim):0;
+  const S=detalheSimpl(p),C0=detalhe(p,0),C=detalhe(p,planejado),CM=detalhe(p,lim);
+  const ideal=C.dev<S.dev?"completa":"simplificada", devIdeal=Math.min(C.dev,S.dev), devHoje=Math.min(C0.dev,S.dev), econ=devHoje-devIdeal;
+  const extraMedia=sel.dec.reduce((a,d)=>a+d.extra,0)/Math.max(1,sel.dec.length);
+  const total=sel.rendaLiq+extraMedia, alvo=Math.max(0,p.rendaDesejada-extraMedia);
+  const nec=aporteNecessario(p,sel.strat,alvo), falta=p.rendaDesejada-total;
+  const anos=p.idadeApos-p.idade;
+  let ra=null,rb=null;if(sel.strat!=="fora"){ra=simulate(p,sel.strat,"reg",p.aporte);rb=simulate(p,sel.strat,"prog",p.aporte)}
+  const regRec=ra&&(ra.rendaLiq>=rb.rendaLiq?"regressivo":"progressivo");
+  const nome=p.nome||"Cliente";
+  const hoje=new Date().toLocaleDateString("pt-BR");
+  const st=[];
+  st.push(ideal==="completa"
+    ?{t:"Declare o IR no modelo completo",d:`Guarde os comprovantes de INSS, saúde, educação e do PGBL. Com o plano, o imposto do ano fica em ${fmtBRL(devIdeal)}${econ>1?`, ${fmtBRL(econ)} a menos que hoje`:""}.`}
+    :{t:"Declare o IR no modelo simplificado",d:`O desconto padrão de 20% vale mais que as suas deduções. Por isso o PGBL não reduz o seu imposto (${fmtBRL(devIdeal)} no ano).`});
+  if(sel.strat==="mix"){
+    st.push({t:`Aporte ${fmtBRL(sel.pgblMes)} por mês no PGBL`,d:`É o que cabe no limite de 12% da sua renda tributável (${fmtBRL(lim)} por ano). Acima disso o PGBL deixa de reduzir o imposto.`});
+    if(sel.vgblMes>.5)st.push({t:`Aporte ${fmtBRL(sel.vgblMes)} por mês no VGBL`,d:"O que passa do limite vai para o VGBL. No resgate, o IR incide só sobre o rendimento, não sobre o valor todo."});
+  }else if(sel.strat==="vgbl"){
+    const motivo=p.contribui!==1?"Sem contribuição ao INSS ou regime próprio, o PGBL não pode ser deduzido.":lim<=0?"O limite de 12% já está ocupado pelo plano atual.":ideal==="simplificada"?"Na declaração simplificada, o PGBL não traz benefício.":"Com essas premissas, o VGBL entrega mais renda.";
+    st.push({t:`Concentre os aportes no VGBL: ${fmtBRL(p.aporte)} por mês`,d:`${motivo} No VGBL o IR do resgate incide só sobre o rendimento.`});
+  }else if(sel.strat==="pgbl"){
+    st.push({t:`Aporte ${fmtBRL(p.aporte)} por mês no PGBL`,d:`O valor cabe no limite de 12% da renda tributável (${fmtBRL(lim)} por ano), então todo o aporte reduz o imposto.`});
+  }else{
+    st.push({t:`Invista ${fmtBRL(p.aporte)} por mês fora da previdência`,d:`Com a taxa de ${String(p.taxaAdm).replace(".",",")}% a.a. da previdência, o investimento fora rende mais. Se encontrar um plano com taxa menor, vale refazer a conta: a previdência tem vantagem na sucessão.`});
+  }
+  if(usaPGBL&&ideal==="completa"&&lim-planejado>1){const extra=Math.min(C.dev,S.dev)-Math.min(CM.dev,S.dev);
+    st.push({t:"Use o limite que sobra em dezembro",d:`Ainda cabem ${fmtBRL(lim-planejado)} no PGBL este ano. Aportando até 31 de dezembro, o imposto cai mais ${fmtBRL(extra)}.`});}
+  if(usaPGBL&&econ>1)st.push({t:"Reinvista a restituição assim que ela cair",d:`São cerca de ${fmtBRL(econ)} por ano. Aplicar esse valor no VGBL é o que faz o PGBL valer a pena; gasto, a vantagem some.`});
+  if(ra)st.push({t:`Escolha o regime ${regRec} no primeiro resgate`,d:`Pela Lei 14.803/2024, a escolha pode ficar para o primeiro resgate ou benefício. Nas premissas de hoje, o regressivo rende ${fmtBRL(ra.rendaLiq)} e o progressivo ${fmtBRL(rb.rendaLiq)} líquidos por mês.`});
+  if(sel.strat!=="fora")st.push({t:"Escolha um plano barato e indique os beneficiários",d:`Prefira taxa de administração de até 1% a.a., sem taxa de carregamento, e um perfil de investimento adequado aos ${anos} anos até a aposentadoria. O plano vai direto aos beneficiários, fora do inventário; confira a regra de ITCMD do seu estado.`});
+  st.push(falta>1
+    ?{t:"Feche a distância até a meta",d:`Com este plano, a renda fica em ${fmtBRL(total)} por mês, ${Math.round(total/p.rendaDesejada*100)}% da meta de ${fmtBRL(p.rendaDesejada)}. Para chegar lá, o aporte precisaria ser de ${isFinite(nec)?fmtBRL(nec)+" por mês":"um valor fora de alcance"}. Outras saídas: adiar a aposentadoria, aumentar a renda extra ou ajustar a meta.`}
+    :{t:"Mantenha o plano",d:`A renda projetada de ${fmtBRL(total)} por mês cobre a meta de ${fmtBRL(p.rendaDesejada)}.`});
+  st.push({t:"Revise todo ano, antes de dezembro",d:"Quando a renda muda, o limite de 12% muda junto. Revise os aportes e o modelo de declaração uma vez por ano."});
+
+  const marcos=[];
+  for(let a=p.idade;a<=p.idadeFim;a+=5){
+    if(a<p.idadeApos){const r=sel.acc.find(x=>x.age===a)||sel.acc[0];marcos.push({a,fase:"Acumulação",saldo:a===p.idade?p.inicial:(sel.acc.find(x=>x.age===a-1)||r).saldo,renda:null})}
+    else{const r=sel.dec.find(x=>x.age===a);if(r)marcos.push({a,fase:"Renda",saldo:r.saldo,renda:r.total})}
+  }
+  const apos=sel.dec[0];if(apos&&!marcos.some(m=>m.a===p.idadeApos))marcos.push({a:p.idadeApos,fase:"Renda",saldo:apos.saldo,renda:apos.total});
+  marcos.sort((x,y)=>x.a-y.a);
+
+  const comp=sel.strat==="mix"?`PGBL de ${fmtBRL(sel.pgblMes)} + VGBL de ${fmtBRL(sel.vgblMes)} por mês`:sel.strat==="fora"?`${fmtBRL(p.aporte)} por mês fora da previdência`:`${s.name.replace("Só ","")} de ${fmtBRL(p.aporte)} por mês`;
+  $("resC").innerHTML=`
+  <header class="rep-head">
+    <div><span class="eyebrow">Plano de aposentadoria</span><h2>${esc(nome)}</h2></div>
+    <div class="meta">${hoje}<br>${p.idade} anos · aposentadoria aos ${p.idadeApos}</div>
+  </header>
+  <p class="rep-lead">A recomendação é <em>${comp}</em>, com declaração ${ideal}${ra?` e regime ${regRec}`:""}. Assim você chega aos ${p.idadeApos} anos com ${fmtK(sel.saldo)} e recebe cerca de ${fmtBRL(total)} por mês${p.modoRenda==="perpetua"?", vivendo só dos rendimentos":` até os ${p.idadeFim}`}.</p>
+  <div class="rep-nums">
+    <div class="rep-num"><span>Patrimônio aos ${p.idadeApos}</span><b>${fmtK(sel.saldo)}</b><small>em valores de hoje</small></div>
+    <div class="rep-num"><span>Renda mensal</span><b>${fmtBRL(total)}</b><small>${fmtBRL(sel.rendaLiq)} previdência + ${fmtBRL(extraMedia)} extra</small></div>
+    <div class="rep-num"><span>Economia de IR</span><b>${econ>1?fmtBRL(econ):"—"}</b><small>${econ>1?"por ano, com o PGBL":"sem dedução de PGBL"}</small></div>
+  </div>
+  <section class="rep-sec"><h3>O que fazer, em ordem</h3>
+    <ol class="steps">${st.map(x=>`<li><div><b>${x.t}</b><p>${x.d}</p></div></li>`).join("")}</ol>
+  </section>
+  <section class="rep-sec"><h3>Projeção a cada 5 anos</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>Idade</th><th>Fase</th><th>Patrimônio</th><th>Renda mensal total</th></tr></thead>
+    <tbody>${marcos.map(m=>`<tr><td>${m.a} anos</td><td style="text-align:right">${m.fase}</td><td>${fmtBRL(m.saldo)}</td><td>${m.renda==null?'<span class="muted">—</span>':fmtBRL(m.renda)}</td></tr>`).join("")}</tbody></table></div>
+  </section>
+  <p class="rep-prem">Premissas: rentabilidade real de ${fmtPct(p.rentReal/100,2)} a.a., inflação de ${fmtPct(p.infl/100,2)} a.a., taxa de administração de ${fmtPct(p.taxaAdm/100,2)} a.a., aportes ${p.reajusta===1?"corrigidos pela inflação":"fixos"}, renda extra de ${fmtBRL(p.outrasRendas)}/mês a partir dos ${p.outrasDesde} anos. Valores em reais de hoje. Simulação com premissas constantes e regras do IR de 2026; não é garantia de rentabilidade.</p>`;
+
+  reportText=[`PLANO DE APOSENTADORIA – ${nome}`,`${hoje}`,"",
+    `Recomendação: ${comp}, declaração ${ideal}${ra?`, regime ${regRec}`:""}.`,
+    `Patrimônio aos ${p.idadeApos}: ${fmtK(sel.saldo)} | Renda mensal: ${fmtBRL(total)} | Economia de IR: ${econ>1?fmtBRL(econ)+"/ano":"—"}`,"",
+    "O QUE FAZER, EM ORDEM",...st.map((x,i)=>`${i+1}. ${x.t}\n   ${x.d}`),
+    ...(p.obs?["","OBSERVAÇÕES",p.obs]:[]),"",
+    "Valores em reais de hoje. Simulação com premissas constantes; não é garantia de rentabilidade.","",
+    "Isabel Abreu | Economista e Planejadora Financeira"].join("\n");
+}
+$("btnCopy").addEventListener("click",()=>{
+  const msg=$("copyMsg");
+  const fallback=()=>{const b=$("copyBuf");b.value=reportText;b.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}msg.textContent=ok?"Texto copiado.":"Não deu para copiar automaticamente. Selecione o relatório e copie."};
+  try{navigator.clipboard.writeText(reportText).then(()=>msg.textContent="Texto copiado.",fallback)}catch(e){fallback()}
+});
+
+function renderA(p,res,best){
+  const sel=p.estrategia==="auto"?best:res.find(r=>r.strat===p.estrategia)||best;
+  const s=sById(sel.strat);
+  const extraMedia=sel.dec.reduce((a,d)=>a+d.extra,0)/Math.max(1,sel.dec.length);
+  const alvo=Math.max(0,p.rendaDesejada-extraMedia);
+  const nec=aporteNecessario(p,sel.strat,alvo);
+  const total=sel.rendaLiq+extraMedia;
+  const cob=p.rendaDesejada>0?Math.min(1,total/p.rendaDesejada):1;
+  const quem=p.nome?esc(p.nome):"O cliente";
+  const series=[{path:sel.path,color:s.color,w:3,area:true,name:`${s.name} com ${fmtBRL(p.aporte)}/mês`}];
+  if(isFinite(nec)&&nec>0&&Math.abs(nec-p.aporte)>50){const r2=bestOf(p,sel.strat,nec);series.push({path:r2.path,color:"var(--terra)",dash:true,name:`Com o aporte necessário (${fmtBRL(nec)}/mês)`})}
+  const falta=p.rendaDesejada-total;
+  const accRows=sel.acc.map(r=>`<tr><td>${r.age}</td><td>${fmtBRL(r.aporte)}</td><td>${r.rest>0?fmtBRL(r.rest):"—"}</td><td>${fmtBRL(r.saldo)}</td></tr>`).join("");
+  const decRows=sel.dec.map(r=>`<tr><td>${r.age}</td><td>${fmtBRL(r.saldo)}</td><td>${fmtBRL(r.bruto)}</td><td>${fmtBRL(r.ir)}</td><td>${fmtBRL(r.liq)}</td><td>${r.extra>0?fmtBRL(r.extra):"—"}</td><td><b>${fmtBRL(r.total)}</b></td><td class="${r.total>=p.rendaDesejada-1?"delta-pos":"delta-neg"}">${fmtBRL(r.total-p.rendaDesejada)}</td></tr>`).join("");
+  $("resA").innerHTML=`
+  <div class="verdict">
+    <span class="eyebrow">${p.nome?esc(p.nome):"Projeção"} · ${s.name} · ${regName(sel).toLowerCase()}</span>
+    <h2>${quem} chega aos ${p.idadeApos} com <em>${fmtK(sel.saldo)}</em> e recebe ${fmtBRL(total)}/mês</h2>
+    <p>${fmtBRL(sel.rendaLiq)} líquidos da previdência${extraMedia>0?` + ${fmtBRL(extraMedia)} de renda extra (média)`:""}. ${p.modoRenda==="perpetua"?"O patrimônio é preservado: o cliente vive só dos rendimentos reais.":`O patrimônio é consumido até os ${p.idadeFim} anos.`} ${falta>1?`Faltam ${fmtBRL(falta)}/mês para a meta de ${fmtBRL(p.rendaDesejada)}.`:"A meta de renda está coberta."}</p>
+    <div class="kpis">
+      <div class="kpi"><span>Patrimônio aos ${p.idadeApos}</span><b>${fmtK(sel.saldo)}</b><small>bruto, em valores de hoje</small></div>
+      <div class="kpi"><span>Renda da previdência</span><b>${fmtBRL(sel.rendaLiq)}</b><small>líquida de IR, por mês</small></div>
+      <div class="kpi"><span>Renda extra</span><b>${fmtBRL(p.outrasRendas)}</b><small>a partir dos ${p.outrasDesde}</small></div>
+      <div class="kpi"><span>Aporte para a meta</span><b>${p.rendaDesejada<=0||alvo<=0?"—":isFinite(nec)?fmtBRL(nec):"fora de alcance"}</b><small>por mês, mesma estratégia</small></div>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Meta de renda <span class="note">${Math.round(cob*100)}% coberta</span></h2>
+    <div class="goal-row"><span>Previdência <b>${fmtBRL(sel.rendaLiq)}</b></span><span>Renda extra <b>${fmtBRL(extraMedia)}</b></span><span>Meta <b>${fmtBRL(p.rendaDesejada)}</b></span></div>
+    <div class="goal-bar" role="img" aria-label="Cobertura da meta: ${Math.round(cob*100)}%">
+      <i style="width:${Math.min(100,sel.rendaLiq/(p.rendaDesejada||1)*100)}%;background:var(--gold)"></i>
+      <i style="width:${Math.max(0,Math.min(100-sel.rendaLiq/(p.rendaDesejada||1)*100,extraMedia/(p.rendaDesejada||1)*100))}%;background:var(--blue)"></i></div>
+  </section>
+
+  <section class="card">
+    <h2>Patrimônio ao longo da vida <span class="note">valores de hoje, bruto de IR</span></h2>
+    ${chartPatrimonio(series,p)}
+    <div class="legend">${series.map(x=>`<span><i class="ln" style="background:${x.color}"></i>${x.name}</span>`).join("")}</div>
+  </section>
+
+  <section class="card">
+    <h2>Renda mensal na aposentadoria <span class="note">líquida, em valores de hoje</span></h2>
+    ${chartRenda(sel.dec,p)}
+    <div class="legend"><span><i style="background:var(--gold)"></i>Previdência (líquida de IR)</span><span><i style="background:var(--blue)"></i>Renda extra</span><span><i class="ln" style="background:var(--terra)"></i>Meta</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Demonstrativo ano a ano</h2>
+    <div class="segmented" id="demoSeg" style="margin-bottom:12px"><button type="button" data-v="renda" aria-pressed="${demoTab==="renda"}">Fase de renda</button><button type="button" data-v="acum" aria-pressed="${demoTab==="acum"}">Fase de acumulação</button></div>
+    <div class="tbl-scroll" ${demoTab==="renda"?"":"hidden"}><table>
+      <thead><tr><th>Idade</th><th>Saldo no início</th><th>Saque bruto/mês</th><th>IR/mês</th><th>Previdência líquida</th><th>Renda extra</th><th>Renda total</th><th>Frente à meta</th></tr></thead>
+      <tbody>${decRows}</tbody></table></div>
+    <div class="tbl-scroll" ${demoTab==="acum"?"":"hidden"}><table>
+      <thead><tr><th>Idade</th><th>Aportes no ano</th><th>Restituição reinvestida</th><th>Saldo no fim do ano</th></tr></thead>
+      <tbody>${accRows}</tbody></table></div>
+  </section>`;
+  $("demoSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;demoTab=b.dataset.v;renderA(p,res,best)});
+}
+
+function renderB(p,res,best){
+  const lim=limitePGBL(p);
+  const planejado=Math.min(p.aporte*12+p.aporteExtra,lim);
+  const S=detalheSimpl(p), C0=detalhe(p,0), C1=detalhe(p,planejado), CM=detalhe(p,lim);
+  const cols=[{n:"Simplificada",d:S},{n:"Completa sem PGBL",d:C0},{n:`Completa + PGBL planejado`,d:C1,s:fmtBRL(planejado)+"/ano"}];
+  if(lim-planejado>1)cols.push({n:"Completa + PGBL máximo",d:CM,s:fmtBRL(lim)+"/ano"});
+  const minDev=Math.min(...cols.map(c=>c.d.dev));
+  const wi=cols.findIndex(c=>Math.abs(c.d.dev-minDev)<.5);
+  const semPGBL=Math.min(S.dev,C0.dev), comPGBL=Math.min(S.dev,C1.dev), econ=semPGBL-comPGBL;
+  const modeloIdeal=C1.dev<S.dev?"completa":"simplificada";
+  const cls=i=>i===wi?' class="win"':"";
+  const row=(lbl,f,opt={})=>`<tr class="${opt.cls||""}"><td>${lbl}</td>${cols.map((c,i)=>`<td${cls(i)}>${f(c.d)}</td>`).join("")}</tr>`;
+  const v=x=>x?fmtBRL(x):'<span class="muted">—</span>';
+  const decl=`<div class="tbl-wrap"><table class="decl">
+    <thead><tr><th></th>${cols.map((c,i)=>`<th${cls(i)}>${c.n}${c.s?`<span class="sub">${c.s}</span>`:""}</th>`).join("")}</tr></thead>
+    <tbody>
+    ${row("Rendimentos tributáveis",d=>fmtBRL(d.rend))}
+    <tr class="sec"><td colspan="${cols.length+1}">Deduções</td></tr>
+    ${row("INSS / previdência oficial",d=>v(d.inss))}
+    ${row(`Dependentes (${p.dependentes})`,d=>v(d.dep))}
+    ${row("Educação (limitada)",d=>v(d.edu))}
+    ${row("Saúde",d=>v(d.saude))}
+    ${p.pensao?row("Pensão alimentícia",d=>v(d.pensao)):""}
+    ${p.livroCaixa?row("Livro-caixa",d=>v(d.livro)):""}
+    ${row("PGBL (até 12%)",d=>v(d.pgbl))}
+    ${row("Desconto simplificado (20%)",d=>v(d.simpl))}
+    ${row("Total de deduções",d=>fmtBRL(d.ded),{cls:"sum"})}
+    <tr class="sec"><td colspan="${cols.length+1}">Imposto</td></tr>
+    ${row("Base de cálculo",d=>fmtBRL(d.base))}
+    ${row("Imposto pela tabela",d=>fmtBRL(d.tab))}
+    ${row("Redutor Lei 15.270",d=>v(d.red))}
+    ${row("Imposto devido",d=>`<b>${fmtBRL(d.dev)}</b>`,{cls:"sum"})}
+    ${row("Alíquota efetiva",d=>fmtPct(d.ef))}
+    ${p.irPago?row("IR já pago",d=>fmtBRL(p.irPago)):""}
+    ${p.irPago?row("A restituir (a pagar)",d=>`<span class="${d.saldo>=0?"delta-pos":"delta-neg"}">${d.saldo>=0?fmtBRL(d.saldo):"("+fmtBRL(-d.saldo)+")"}</span>`):""}
+    </tbody></table></div>`;
+
+  const quem=p.nome?esc(p.nome):"este cliente";
+  let headline;
+  if(best.strat==="mix")headline=`Para ${quem}: <em>PGBL de ${fmtBRL(best.pgblMes)}</em>/mês${best.vgblMes>.5?` + VGBL de ${fmtBRL(best.vgblMes)}/mês`:""}, declaração ${modeloIdeal}`;
+  else if(best.strat==="vgbl")headline=`Para ${quem}: <em>VGBL</em> com ${fmtBRL(p.aporte)}/mês, declaração ${modeloIdeal}`;
+  else if(best.strat==="pgbl")headline=`Para ${quem}: <em>PGBL</em> com ${fmtBRL(p.aporte)}/mês, declaração ${modeloIdeal}`;
+  else headline=`Para ${quem}: <em>investir fora da previdência</em> rende mais nestas premissas`;
+  const why=[];
+  if(lim<=0)why.push(p.contribui!==1?"Sem contribuição ao INSS ou regime próprio, o PGBL não é dedutível.":"O limite de 12% já está tomado pelo PGBL ou Funpresp atual.");
+  else if(modeloIdeal==="simplificada")why.push("A declaração simplificada continua melhor mesmo com o PGBL, então ele não traz economia.");
+  else why.push(`Com a declaração completa, o PGBL reduz o IR em ${fmtBRL(econ)} por ano${p.reinveste===1?", e essa restituição reinvestida aumenta o patrimônio":""}.`);
+  if(best.strat==="fora")why.push(`A taxa da previdência (${String(p.taxaAdm).replace(".",",")}% a.a.) contra ${String(p.taxaFora).replace(".",",")}% fora pesa mais que a alíquota menor do regressivo. Um plano mais barato pode mudar o resultado, e a previdência ainda tem a vantagem sucessória.`);
+  else{const g=best.rendaLiq-res[3].rendaLiq;why.push(`Frente a investir fora da previdência, são ${fmtBRL(Math.abs(g))}/mês ${g>=0?"a mais":"a menos"} de renda líquida.`)}
+
+  const vg=res[1];
+  const rows=res.map(r=>{const s=sById(r.strat),isB=r===best,dif=r.rendaLiq-vg.rendaLiq;
+    const comp=r.strat==="mix"?`${fmtBRL(r.pgblMes)} PGBL · ${fmtBRL(r.vgblMes)} VGBL`:s.desc;
+    return `<tr class="${isB?"best":""}"><td><span class="sname"><i style="background:${s.color}"></i>${s.name}</span><span class="sub">${comp}</span></td>
+      <td>${fmtK(r.saldo)}</td><td><b>${fmtBRL(r.rendaLiq)}</b><span class="sub">${r.strat==="vgbl"?"base":`<span class="${dif>=0?"delta-pos":"delta-neg"}">${dif>=0?"+":"−"}${fmtBRL(Math.abs(dif))}</span>`}</span></td>
+      <td>${fmtPct(r.aliqEf)}</td><td>${r.econTotal>0?fmtK(r.econTotal):"—"}</td><td><span class="pill ${isB?"win":""}">${regName(r)}</span></td></tr>`}).join("");
+  let regBox="";
+  if(best.strat!=="fora"){const a=simulate(p,best.strat,"reg",p.aporte),b=simulate(p,best.strat,"prog",p.aporte);
+    regBox=`<div class="ir-grid" style="margin-top:12px">
+      <div class="ir-box"><span>Regressivo</span><b>${fmtBRL(a.rendaLiq)}</b><small>IR efetivo de ${fmtPct(a.aliqEf)} sobre os saques</small></div>
+      <div class="ir-box"><span>Progressivo</span><b>${fmtBRL(b.rendaLiq)}</b><small>IR efetivo de ${fmtPct(b.aliqEf)}, somado à renda extra</small></div>
+      <div class="ir-box"><span>Escolha</span><b>${a.rendaLiq>=b.rendaLiq?"Regressivo":"Progressivo"}</b><small>Pela Lei 14.803/2024, dá para decidir no primeiro resgate ou benefício.</small></div></div>`}
+
+  const alerts=[];
+  if(p.contribui!==1)alerts.push(["warn","<b>Sem INSS ou regime próprio.</b> A dedução do PGBL exige essa contribuição. Vale avaliar contribuir antes de abrir o plano."]);
+  if(lim>0&&modeloIdeal==="simplificada")alerts.push(["warn","<b>A simplificada ainda vence.</b> Com essas deduções, o PGBL não traz economia. Use só VGBL ou investimento fora."]);
+  if(lim>0&&p.aporte*12+p.aporteExtra>lim)alerts.push(["","<b>Aporte acima do limite.</b> "+fmtBRL(p.aporte*12+p.aporteExtra-lim)+" por ano passam dos 12%. No PGBL esse excesso não deduz e ainda paga IR sobre o valor total no resgate. Coloque no VGBL."]);
+  if(lim>0&&planejado<lim-1&&modeloIdeal==="completa")alerts.push(["","<b>Sobra limite dedutível.</b> Faltam "+fmtBRL(lim-planejado)+" por ano para usar os 12%. Um aporte extra no PGBL em dezembro economiza mais "+fmtBRL(Math.min(S.dev,C1.dev)-Math.min(S.dev,CM.dev))+" de IR."]);
+  if(p.renda<=88200)alerts.push(["warn","<b>Renda na faixa do redutor da Lei 15.270.</b> Até R$ 88,2 mil por ano o IR já é reduzido ou zerado, então o ganho do PGBL é pequeno ou nulo."]);
+  if(p.reinveste!==1&&(best.strat==="mix"||best.strat==="pgbl"))alerts.push(["warn","<b>Restituição não reinvestida.</b> O PGBL só se paga quando a restituição volta para o investimento."]);
+  if(p.idadeApos-p.idade<10)alerts.push(["","<b>Prazo curto.</b> Com menos de 10 anos até a aposentadoria, parte dos aportes sai com alíquota regressiva acima de 10%."]);
+
+  $("resB").innerHTML=`
+  <div class="verdict">
+    <span class="eyebrow">${p.nome?esc(p.nome):"Estratégia indicada"}</span>
+    <h2>${headline}</h2>
+    <p>${why.join(" ")}</p>
+    <div class="kpis">
+      <div class="kpi"><span>Declaração ideal</span><b>${modeloIdeal==="completa"?"Completa":"Simplificada"}</b><small>IR de ${fmtBRL(comPGBL)}</small></div>
+      <div class="kpi"><span>Desconto máximo PGBL</span><b>${fmtBRL(lim)}</b><small>por ano · ${fmtBRL(lim/12)}/mês</small></div>
+      <div class="kpi"><span>Economia de IR</span><b>${fmtBRL(econ)}</b><small>por ano, com o aporte planejado</small></div>
+      <div class="kpi"><span>${p.irPago?(C1.dev<=S.dev?C1:S).saldo>=0?"A restituir":"A pagar":"Alíquota efetiva"}</span><b>${p.irPago?fmtBRL(Math.abs((C1.dev<=S.dev?C1:S).saldo)):fmtPct((C1.dev<=S.dev?C1:S).ef)}</b><small>${p.irPago?"na declaração ideal":"sobre a renda tributável"}</small></div>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Declaração de IR: qual modelo usar <span class="note">ano-calendário 2026</span></h2>
+    ${decl}
+  </section>
+
+  <section class="card">
+    <h2>Comparação das estratégias <span class="note">mesmo aporte, renda líquida até os ${p.idadeFim}</span></h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Estratégia</th><th>Patrimônio aos ${p.idadeApos}</th><th>Renda líquida/mês</th><th>IR efetivo</th><th>IR economizado</th><th>Regime</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    ${regBox}
+  </section>
+
+  ${alerts.length?`<section class="card"><h2>Pontos de atenção</h2><div class="alerts">${alerts.map(([c,t])=>`<div class="alert ${c}"><span class="dot"></span><span>${t}</span></div>`).join("")}</div></section>`:""}
+
+  <section class="card">
+    <h2>Antes de fechar com o cliente</h2>
+    <div class="checklist">
+      <div class="check"><h3>Taxas</h3>Taxa de administração acima de 1% a.a. e qualquer carregamento comem a vantagem fiscal. Compare com fundos sem carregamento.</div>
+      <div class="check"><h3>Resgate antes da hora</h3>No PGBL o IR incide sobre o valor total. Dinheiro que pode ser usado antes da aposentadoria fica melhor no VGBL ou fora.</div>
+      <div class="check"><h3>Sucessão</h3>PGBL e VGBL vão direto aos beneficiários, fora do inventário. Confira a regra de ITCMD do estado do cliente.</div>
+      <div class="check"><h3>Portabilidade</h3>Dá para trocar de plano sem IR (PGBL para PGBL, VGBL para VGBL), mantendo o tempo de cada aporte no regressivo.</div>
+    </div>
+  </section>`;
+}
+
+route();fillForm();update();
+})();
+</script>
+
+</html>
