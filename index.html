@@ -241,6 +241,8 @@ body.on-cover .tabs,body.on-cover .head-tools,body.on-cover .foot{display:none}
 .mini-bar i{display:block;height:100%}
 td.wrap-cell{white-space:normal;min-width:170px;text-align:left;font-size:12.5px;color:var(--muted)}
 @media (max-width:620px){.gi-grid{grid-template-columns:minmax(0,1fr)}}
+.segmented[data-seg=modoRenda]{border-radius:14px;flex-direction:column;align-items:stretch;width:100%}
+.segmented[data-seg=modoRenda] button{border-radius:10px;text-align:left}
 /* escada de acumulação (página 1) */
 .stair-top{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:16px}
 .stair-top div{display:flex;flex-direction:column;gap:2px}
@@ -316,7 +318,8 @@ td.wrap-cell{white-space:normal;min-width:170px;text-align:left;font-size:12.5px
           <div class="field"><label for="a-idadeFim">Renda até os</label><div class="affix"><input id="a-idadeFim" data-key="idadeFim" data-k="int" inputmode="numeric"><span class="post">anos</span></div></div>
           <div class="field"><label for="a-rendaDesejada">Renda desejada</label><div class="affix"><span class="pre">R$</span><input id="a-rendaDesejada" data-key="rendaDesejada" data-k="money" inputmode="decimal"><span class="post">/mês</span></div></div>
           <div class="field full"><span class="lbl">Como usar o patrimônio</span>
-            <div class="segmented" data-seg="modoRenda"><button type="button" data-v="consumir">Consumir até a idade final</button><button type="button" data-v="perpetua">Viver só dos rendimentos</button></div></div>
+            <div class="segmented" data-seg="modoRenda"><button type="button" data-v="consumir">Consumir até a idade final</button><button type="button" data-v="perpetua">Viver só dos rendimentos</button><button type="button" data-v="legado">Deixar um valor para os dependentes</button></div></div>
+          <div class="field full" id="legadoField"><label for="a-legado">Valor para os dependentes</label><div class="affix"><span class="pre">R$</span><input id="a-legado" data-key="legado" data-k="money" inputmode="decimal"></div><span class="hint">O que deve sobrar na idade final, em valores de hoje. A previdência vai direto aos beneficiários, fora do inventário.</span></div>
         </div>
       </section>
       <section class="card">
@@ -463,7 +466,7 @@ td.wrap-cell{white-space:normal;min-width:170px;text-align:left;font-size:12.5px
 
 <script>
 (()=>{
-const DEFAULTS={nome:"",idade:40,idadeApos:60,idadeFim:95,rendaDesejada:15000,modoRenda:"consumir",
+const DEFAULTS={nome:"",idade:40,idadeApos:60,idadeFim:95,rendaDesejada:15000,modoRenda:"consumir",legado:500000,
   outrasRendas:4000,outrasDesde:65,aporte:8500,aporteExtra:0,inicial:50000,estrategia:"auto",reajusta:1,
   rentReal:4,infl:4,taxaAdm:0.6,taxaFora:0.2,
   renda:300000,contribui:1,inss:11800,dependentes:2,educacao:20000,saude:18000,pensao:0,livroCaixa:0,pgblExistente:0,irPago:58000,
@@ -498,6 +501,7 @@ function fillForm(except){
   fields.forEach(el=>{if(el!==except)showField(el)});
   document.querySelectorAll("[data-seg]").forEach(g=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(state[g.dataset.seg])))));
   if(!except||!except.closest("#goalList"))renderGoalList();
+  $("legadoField").hidden=state.modoRenda!=="legado";
 }
 fields.forEach(el=>{
   const ev=el.tagName==="SELECT"?"change":"input";
@@ -614,8 +618,10 @@ function simulate(p,strat,regime,aporteMensal){
   }
   const IN=I, saldo=tot()/IN;
   const W={};
+  const totB=saldo, L=p.modoRenda==="legado"?Math.max(0,p.legado||0):0;
   for(const k in pots){const B=val(pots[k])/IN;const r=(1+pots[k].i)/(1+pim)-1;
-    W[k]=B<=0?0:p.modoRenda==="perpetua"?(r>0?B*r:B/M):(Math.abs(r)<1e-9?B/M:B*r/(1-Math.pow(1+r,-M)))}
+    const Bn=B-(totB>0?L*B/totB:0)/Math.pow(1+r,M);
+    W[k]=B<=0?0:p.modoRenda==="perpetua"?(r>0?B*r:B/M):Math.max(0,Math.abs(r)<1e-9?Bn/M:Bn*r/(1-Math.pow(1+r,-M)))}
   let liqTot=0,irTot=0,brutoTot=0,yb=0,yi=0,yl=0,ySaldo=saldo;
   for(let m=0;m<M;m++){
     const tNow=N+m, age=p.idadeApos+m/12;
@@ -724,6 +730,7 @@ function renderC(p,res,best,G){
   const total=sel.rendaLiq+extraMedia, alvo=Math.max(0,p.rendaDesejada-extraMedia);
   const nec=aporteNecessario(p,sel.strat,alvo), falta=p.rendaDesejada-total;
   const anos=p.idadeApos-p.idade;
+  const stairD=stairData(p,sel,nec,alvo);
   let ra=null,rb=null;if(sel.strat!=="fora"){ra=simulate(p,sel.strat,"reg",p.aporte);rb=simulate(p,sel.strat,"prog",p.aporte)}
   const regRec=ra&&(ra.rendaLiq>=rb.rendaLiq?"regressivo":"progressivo");
   const nome=p.nome||"Cliente";
@@ -767,12 +774,13 @@ function renderC(p,res,best,G){
     <div><span class="eyebrow">Plano de aposentadoria</span><h2>${esc(nome)}</h2></div>
     <div class="meta">${hoje}<br>${p.idade} anos · aposentadoria aos ${p.idadeApos}</div>
   </header>
-  <p class="rep-lead">A recomendação é <em>${comp}</em>, com declaração ${ideal}${ra?` e regime ${regRec}`:""}. Assim você chega aos ${p.idadeApos} anos com ${fmtK(sel.saldo)} e recebe cerca de ${fmtBRL(total)} por mês${p.modoRenda==="perpetua"?", vivendo só dos rendimentos":` até os ${p.idadeFim}`}.</p>
+  <p class="rep-lead">A recomendação é <em>${comp}</em>, com declaração ${ideal}${ra?` e regime ${regRec}`:""}. Assim você chega aos ${p.idadeApos} anos com ${fmtK(sel.saldo)} e recebe cerca de ${fmtBRL(total)} por mês${p.modoRenda==="perpetua"?", vivendo só dos rendimentos":p.modoRenda==="legado"?` até os ${p.idadeFim}, deixando ${fmtK(p.legado)} para os dependentes`:` até os ${p.idadeFim}`}.</p>
   <div class="rep-nums">
     <div class="rep-num"><span>Patrimônio aos ${p.idadeApos}</span><b>${fmtK(sel.saldo)}</b><small>em valores de hoje</small></div>
     <div class="rep-num"><span>Renda mensal</span><b>${fmtBRL(total)}</b><small>${fmtBRL(sel.rendaLiq)} previdência + ${fmtBRL(extraMedia)} extra</small></div>
     <div class="rep-num"><span>Economia de IR</span><b>${econ>1?fmtBRL(econ):"—"}</b><small>${econ>1?"por ano, com o PGBL":"sem dedução de PGBL"}</small></div>
   </div>
+  ${stairD?`<section class="rep-sec"><h3>Quanto acumular até a aposentadoria</h3>${stairBody(p,nec,stairD,"você")}</section>`:""}
   <section class="rep-sec"><h3>O que fazer, em ordem</h3>
     <ol class="steps">${st.map(x=>`<li><div><b>${x.t}</b><p>${x.d}</p></div></li>`).join("")}</ol>
   </section>
@@ -790,6 +798,7 @@ function renderC(p,res,best,G){
   reportText=[`PLANO DE APOSENTADORIA – ${nome}`,`${hoje}`,"",
     `Recomendação: ${comp}, declaração ${ideal}${ra?`, regime ${regRec}`:""}.`,
     `Patrimônio aos ${p.idadeApos}: ${fmtK(sel.saldo)} | Renda mensal: ${fmtBRL(total)} | Economia de IR: ${econ>1?fmtBRL(econ)+"/ano":"—"}`,"",
+    ...(stairD?["QUANTO ACUMULAR ATÉ A APOSENTADORIA",`Patrimônio necessário aos ${p.idadeApos}: ${fmtK(stairD.meta)} | Aporte necessário: ${fmtBRL(nec)}/mês`,...stairD.pts.map(x=>`Aos ${x.a} anos: ${fmtK(x.need)} (com o aporte atual: ${fmtK(x.now)})`),""]:[]),
     "O QUE FAZER, EM ORDEM",...st.map((x,i)=>`${i+1}. ${x.t}\n   ${x.d}`),"",
     "ESCALA DE APORTES POR OBJETIVO",...G.order.map(it=>`- ${it.nome} (${it.anos} ${it.anos===1?"ano":"anos"}): ${it.escTxt}/mês${it.cob<.995?` (atinge ${Math.round(it.cob*100)}%)`:""} · ${it.onde}`),
     ...G.fases.filter(f=>f.de<p.idadeApos).map(f=>`Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)}/mês (${f.ativos.map(a=>`${a.nome} ${fmtBRL(a.v)}`).join(", ")}${f.livre>.5?`, livre ${fmtBRL(f.livre)}`:""})`),
@@ -898,28 +907,30 @@ function renderG(p,G){
   ${alerts.length?`<section class="card"><h2>Pontos de atenção</h2><div class="alerts">${alerts.map(([c,t])=>`<div class="alert ${c}"><span class="dot"></span><span>${t}</span></div>`).join("")}</div></section>`:""}`;
 }
 
-function stairHTML(p,sel,nec,alvo){
-  if(!(alvo>0)||!isFinite(nec))return "";
+function stairData(p,sel,nec,alvo){
+  if(!(alvo>0)||!isFinite(nec))return null;
   const alvoRun=Math.abs(nec-p.aporte)<1?sel:bestOf(p,sel.strat,nec);
-  const meta=alvoRun.saldo;
   const at=(run,a)=>a>=p.idadeApos?run.saldo:a<=p.idade?p.inicial:((run.acc.find(r=>r.age===a-1)||{}).saldo??p.inicial);
   const ages=[];for(let a=p.idade+5;a<p.idadeApos;a+=5)ages.push(a);ages.push(p.idadeApos);
   const pts=ages.map(a=>({a,need:at(alvoRun,a),now:at(sel,a)}));
-  const top=Math.max(...pts.map(x=>Math.max(x.need,x.now)))||1;
-  const noRumo=pts.every(x=>x.now>=x.need-1);
-  return `<section class="card">
-    <h2>Quanto acumular até a aposentadoria <span class="note">valores de hoje</span></h2>
-    <div class="stair-top">
-      <div><span>Patrimônio necessário aos ${p.idadeApos}</span><b>${fmtK(meta)}</b><small>para a renda de ${fmtBRL(p.rendaDesejada)}/mês</small></div>
+  return {meta:alvoRun.saldo,pts,top:Math.max(...pts.map(x=>Math.max(x.need,x.now)))||1,noRumo:pts.every(x=>x.now>=x.need-1)};
+}
+function stairBody(p,nec,D,quem){
+  const metaTxt=`para a renda de ${fmtBRL(p.rendaDesejada)}/mês${p.modoRenda==="legado"?` e ${fmtK(p.legado)} aos dependentes`:""}`;
+  return `<div class="stair-top">
+      <div><span>Patrimônio necessário aos ${p.idadeApos}</span><b>${fmtK(D.meta)}</b><small>${metaTxt}</small></div>
       <div><span>Aporte necessário</span><b>${fmtBRL(nec)}</b><small>por mês${p.reajusta===1?", corrigido pela inflação":""}</small></div>
-      <div><span>Aporte atual</span><b>${fmtBRL(p.aporte)}</b><small>${noRumo?"no rumo da meta":"abaixo do necessário"}</small></div>
+      <div><span>Aporte atual</span><b>${fmtBRL(p.aporte)}</b><small>${D.noRumo?"no rumo da meta":"abaixo do necessário"}</small></div>
     </div>
     <div class="stair" role="img" aria-label="Patrimônio que precisa estar acumulado em cada idade">
-      ${pts.map((x,i)=>`<div class="step${i===pts.length-1?" last":""}"><span class="val">${fmtK(x.need)}</span><div class="bar" style="height:${Math.max(2,x.need/top*100)}%">${`<i style="bottom:${Math.min(100,x.now/Math.max(1,x.need)*100)}%" title="Com o aporte atual: ${fmtK(x.now)}"></i>`}</div></div>`).join("")}
+      ${D.pts.map((x,i)=>`<div class="step${i===D.pts.length-1?" last":""}"><span class="val">${fmtK(x.need)}</span><div class="bar" style="height:${Math.max(2,x.need/D.top*100)}%"><i style="bottom:${Math.min(100,x.now/Math.max(1,x.need)*100)}%" title="Com o aporte atual: ${fmtK(x.now)}"></i></div></div>`).join("")}
     </div>
-    <div class="stair-ages">${pts.map(x=>`<span>${x.a} anos<br><small class="${x.now>=x.need-1?"ok":"no"}">${x.now>=x.need-1?"✓ ":""}${fmtK(x.now)}</small></span>`).join("")}</div>
-    <p class="hint" style="margin-top:12px">Cada degrau é quanto precisa estar guardado em cada idade para chegar à meta. A linha tracejada e o valor abaixo da idade mostram onde o cliente estaria com o aporte atual de ${fmtBRL(p.aporte)}/mês.</p>
-  </section>`;
+    <div class="stair-ages">${D.pts.map(x=>`<span>${x.a} anos<br><small class="${x.now>=x.need-1?"ok":"no"}">${x.now>=x.need-1?"✓ ":""}${fmtK(x.now)}</small></span>`).join("")}</div>
+    <p class="hint" style="margin-top:12px">Cada degrau é quanto precisa estar guardado em cada idade para chegar à meta. A linha tracejada e o valor abaixo da idade mostram onde ${quem} estaria com o aporte atual de ${fmtBRL(p.aporte)}/mês.</p>`;
+}
+function stairHTML(p,sel,nec,alvo){
+  const D=stairData(p,sel,nec,alvo);if(!D)return "";
+  return `<section class="card"><h2>Quanto acumular até a aposentadoria <span class="note">valores de hoje</span></h2>${stairBody(p,nec,D,"o cliente")}</section>`;
 }
 
 function renderA(p,res,best){
@@ -940,7 +951,7 @@ function renderA(p,res,best){
   <div class="verdict">
     <span class="eyebrow">${p.nome?esc(p.nome):"Projeção"} · ${s.name} · ${regName(sel).toLowerCase()}</span>
     <h2>${quem} chega aos ${p.idadeApos} com <em>${fmtK(sel.saldo)}</em> e recebe ${fmtBRL(total)}/mês</h2>
-    <p>${fmtBRL(sel.rendaLiq)} líquidos da previdência${extraMedia>0?` + ${fmtBRL(extraMedia)} de renda extra (média)`:""}. ${p.modoRenda==="perpetua"?"O patrimônio é preservado: o cliente vive só dos rendimentos reais.":`O patrimônio é consumido até os ${p.idadeFim} anos.`} ${falta>1?`Faltam ${fmtBRL(falta)}/mês para a meta de ${fmtBRL(p.rendaDesejada)}.`:"A meta de renda está coberta."}</p>
+    <p>${fmtBRL(sel.rendaLiq)} líquidos da previdência${extraMedia>0?` + ${fmtBRL(extraMedia)} de renda extra (média)`:""}. ${p.modoRenda==="perpetua"?"O patrimônio é preservado: o cliente vive só dos rendimentos reais.":p.modoRenda==="legado"?`Aos ${p.idadeFim} anos, ficam ${fmtK(p.legado)} para os dependentes.`:`O patrimônio é consumido até os ${p.idadeFim} anos.`} ${falta>1?`Faltam ${fmtBRL(falta)}/mês para a meta de ${fmtBRL(p.rendaDesejada)}.`:"A meta de renda está coberta."}</p>
     <div class="kpis">
       <div class="kpi"><span>Patrimônio aos ${p.idadeApos}</span><b>${fmtK(sel.saldo)}</b><small>bruto, em valores de hoje</small></div>
       <div class="kpi"><span>Renda da previdência</span><b>${fmtBRL(sel.rendaLiq)}</b><small>líquida de IR, por mês</small></div>
