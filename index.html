@@ -447,14 +447,14 @@ td.wrap-cell{white-space:normal;min-width:170px;text-align:left;font-size:12.5px
 
 <script>
 (()=>{
-const DEFAULTS={nome:"",idade:40,idadeApos:60,idadeFim:95,rendaDesejada:25000,modoRenda:"consumir",
-  outrasRendas:4000,outrasDesde:65,aporte:4000,aporteExtra:0,inicial:50000,estrategia:"auto",reajusta:1,
+const DEFAULTS={nome:"",idade:40,idadeApos:60,idadeFim:95,rendaDesejada:15000,modoRenda:"consumir",
+  outrasRendas:4000,outrasDesde:65,aporte:8500,aporteExtra:0,inicial:50000,estrategia:"auto",reajusta:1,
   rentReal:4,infl:4,taxaAdm:0.6,taxaFora:0.2,
   renda:300000,contribui:1,inss:11800,dependentes:2,educacao:20000,saude:18000,pensao:0,livroCaixa:0,pgblExistente:0,irPago:58000,
   reinveste:1,capSimpl:17640,dedDep:2275.08,obs:"",
-  capacidade:9000,custoVida:15000,mesesReserva:6,reservaAtual:40000,anosReserva:1,rCurto:2,rMedio:3,
-  goals:[{nome:"Viagem em família",valor:30000,anos:1,guardado:0,prio:"desejo"},
-         {nome:"Troca do carro",valor:120000,anos:3,guardado:20000,prio:"importante"},
+  capacidade:15000,custoVida:15000,mesesReserva:6,reservaAtual:60000,anosReserva:1,rCurto:2,rMedio:3,
+  goals:[{nome:"Viagem em família",valor:20000,anos:2,guardado:0,prio:"desejo"},
+         {nome:"Troca do carro",valor:120000,anos:3,guardado:40000,prio:"importante"},
          {nome:"Entrada do apartamento",valor:300000,anos:6,guardado:60000,prio:"essencial"}]};
 const fresh=()=>JSON.parse(JSON.stringify(DEFAULTS));
 
@@ -465,7 +465,7 @@ const fmtPct=(v,d=1)=>(v*100).toLocaleString("pt-BR",{maximumFractionDigits:d})+
 const parse=s=>{s=String(s).trim().replace(/[^\d,.-]/g,"");if(!s)return 0;if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");const n=parseFloat(s);return isFinite(n)?n:0};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-const STORE="simPrevIsabel.v3";
+const STORE="simPrevIsabel.v4";
 let state=fresh();
 try{const s=JSON.parse(localStorage.getItem(STORE)||"null");if(s)state={...fresh(),...s}}catch(e){}
 if(!Array.isArray(state.goals))state.goals=fresh().goals;
@@ -864,7 +864,7 @@ function renderG(p,G){
     <div class="kpis">
       <div class="kpi"><span>Capacidade</span><b>${fmtBRL(G.cap)}</b><small>por mês</small></div>
       <div class="kpi"><span>Necessário hoje</span><b>${fmtBRL(G.totalNeed)}</b><small>por mês, todos os objetivos</small></div>
-      <div class="kpi"><span>${G.falta>1?"Falta hoje":"Sobra hoje"}</span><b>${fmtBRL(G.falta>1?G.falta:G.sobra)}</b><small>por mês</small></div>
+      <div class="kpi"><span>${G.falta>1?"Falta hoje":"Sobra hoje"}</span><b>${fmtBRL(G.falta>1?G.falta:G.sobra)}</b><small>${G.falta>1&&atend===N?"por mês, coberta pela escala":"por mês"}</small></div>
       <div class="kpi"><span>Objetivos cumpridos</span><b>${atend} de ${N}</b><small>no prazo, com a escala</small></div>
     </div>
   </div>
