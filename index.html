@@ -742,29 +742,20 @@ function renderC(p,res,best,G){
   const nome=p.nome||"Cliente";
   const hoje=new Date().toLocaleDateString("pt-BR");
   const st=[];
+  if(sel.strat==="mix")st.push({t:`Aporte ${fmtBRL(sel.pgblMes)} por mês no PGBL${sel.vgblMes>.5?` e ${fmtBRL(sel.vgblMes)} no VGBL`:""}`,d:`O PGBL vai até o limite de 12% da sua renda tributável, onde ele reduz o imposto${sel.vgblMes>.5?"; o restante vai para o VGBL":""}.`});
+  else if(sel.strat==="vgbl")st.push({t:`Aporte ${fmtBRL(p.aporte)} por mês no VGBL`,d:"No seu caso, o PGBL não reduz o imposto. No VGBL, o IR do resgate incide só sobre o rendimento."});
+  else if(sel.strat==="pgbl")st.push({t:`Aporte ${fmtBRL(p.aporte)} por mês no PGBL`,d:"Todo o valor cabe no limite de 12% da sua renda tributável e reduz o imposto."});
+  else st.push({t:`Invista ${fmtBRL(p.aporte)} por mês fora da previdência`,d:"Com as taxas da previdência, o investimento fora rende mais no seu caso."});
   st.push(ideal==="completa"
-    ?{t:"Declare o IR no modelo completo",d:`Guarde os comprovantes de INSS, saúde, educação e do PGBL. Com o plano, o imposto do ano fica em ${fmtBRL(devIdeal)}${econ>1?`, ${fmtBRL(econ)} a menos que hoje`:""}.`}
-    :{t:"Declare o IR no modelo simplificado",d:`O desconto padrão de 20% vale mais que as suas deduções. Por isso o PGBL não reduz o seu imposto (${fmtBRL(devIdeal)} no ano).`});
-  if(sel.strat==="mix"){
-    st.push({t:`Aporte ${fmtBRL(sel.pgblMes)} por mês no PGBL`,d:`É o que cabe no limite de 12% da sua renda tributável (${fmtBRL(lim)} por ano). Acima disso o PGBL deixa de reduzir o imposto.`});
-    if(sel.vgblMes>.5)st.push({t:`Aporte ${fmtBRL(sel.vgblMes)} por mês no VGBL`,d:"O que passa do limite vai para o VGBL. No resgate, o IR incide só sobre o rendimento, não sobre o valor todo."});
-  }else if(sel.strat==="vgbl"){
-    const motivo=p.contribui!==1?"Sem contribuição ao INSS ou regime próprio, o PGBL não pode ser deduzido.":lim<=0?"O limite de 12% já está ocupado pelo plano atual.":ideal==="simplificada"?"Na declaração simplificada, o PGBL não traz benefício.":"Com essas premissas, o VGBL entrega mais renda.";
-    st.push({t:`Concentre os aportes no VGBL: ${fmtBRL(p.aporte)} por mês`,d:`${motivo} No VGBL o IR do resgate incide só sobre o rendimento.`});
-  }else if(sel.strat==="pgbl"){
-    st.push({t:`Aporte ${fmtBRL(p.aporte)} por mês no PGBL`,d:`O valor cabe no limite de 12% da renda tributável (${fmtBRL(lim)} por ano), então todo o aporte reduz o imposto.`});
-  }else{
-    st.push({t:`Invista ${fmtBRL(p.aporte)} por mês fora da previdência`,d:`Com a taxa de ${String(p.taxaAdm).replace(".",",")}% a.a. da previdência, o investimento fora rende mais. Se encontrar um plano com taxa menor, vale refazer a conta: a previdência tem vantagem na sucessão.`});
-  }
-  if(usaPGBL&&ideal==="completa"&&lim-planejado>1){const extra=Math.min(C.dev,S.dev)-Math.min(CM.dev,S.dev);
-    st.push({t:"Use o limite que sobra em dezembro",d:`Ainda cabem ${fmtBRL(lim-planejado)} no PGBL este ano. Aportando até 31 de dezembro, o imposto cai mais ${fmtBRL(extra)}.`});}
-  if(usaPGBL&&econ>1)st.push({t:"Reinvista a restituição assim que ela cair",d:`São cerca de ${fmtBRL(econ)} por ano. Aplicar esse valor no VGBL é o que faz o PGBL valer a pena; gasto, a vantagem some.`});
-  if(ra)st.push({t:`Escolha o regime ${regRec} no primeiro resgate`,d:`Pela Lei 14.803/2024, a escolha pode ficar para o primeiro resgate ou benefício. Nas premissas de hoje, o regressivo rende ${fmtBRL(ra.rendaLiq)} e o progressivo ${fmtBRL(rb.rendaLiq)} líquidos por mês.`});
-  if(sel.strat!=="fora")st.push({t:"Escolha um plano barato e indique os beneficiários",d:`Prefira taxa de administração de até 1% a.a., sem taxa de carregamento, e um perfil de investimento adequado aos ${anos} anos até a aposentadoria. O plano vai direto aos beneficiários, fora do inventário; confira a regra de ITCMD do seu estado.`});
+    ?{t:"Declare o IR no modelo completo",d:`Guarde os comprovantes. O imposto do ano fica em ${fmtBRL(devIdeal)}${econ>1?`, ${fmtBRL(econ)} a menos que hoje`:""}.`}
+    :{t:"Declare o IR no modelo simplificado",d:`O desconto padrão vale mais que as suas deduções. Imposto do ano: ${fmtBRL(devIdeal)}.`});
+  if(usaPGBL&&econ>1)st.push({t:"Reinvista a restituição",d:`São cerca de ${fmtBRL(econ)} por ano. Aplicados no VGBL, fazem o PGBL valer a pena.`});
+  if(usaPGBL&&ideal==="completa"&&lim-planejado>1)st.push({t:"Use o limite que sobra até dezembro",d:`Ainda cabem ${fmtBRL(lim-planejado)} no PGBL este ano. Aportando até 31/12, o imposto cai mais um pouco.`});
+  if(sel.strat!=="fora")st.push({t:"Escolha um plano de taxa baixa e indique os beneficiários",d:"Taxa de administração de até 1% ao ano e sem taxa de carregamento. Em caso de falecimento, o valor vai direto aos beneficiários, sem passar por inventário."});
+  if(ra)st.push({t:`No primeiro resgate, escolha o regime ${regRec}`,d:`É o que deixa mais renda líquida no seu caso: ${fmtBRL(regRec==="regressivo"?ra.rendaLiq:rb.rendaLiq)} por mês.`});
   st.push(falta>1
-    ?{t:"Feche a distância até a meta",d:`Com este plano, a renda fica em ${fmtBRL(total)} por mês, ${Math.round(total/p.rendaDesejada*100)}% da meta de ${fmtBRL(p.rendaDesejada)}. Para chegar lá, o aporte precisaria ser de ${isFinite(nec)?fmtBRL(nec)+" por mês":"um valor fora de alcance"}. Outras saídas: adiar a aposentadoria, aumentar a renda extra ou ajustar a meta.`}
-    :{t:"Mantenha o plano",d:`A renda projetada de ${fmtBRL(total)} por mês cobre a meta de ${fmtBRL(p.rendaDesejada)}.`});
-  st.push({t:"Revise todo ano, antes de dezembro",d:"Quando a renda muda, o limite de 12% muda junto. Revise os aportes e o modelo de declaração uma vez por ano."});
+    ?{t:"Feche a distância até a meta",d:`Hoje o plano chega a ${Math.round(total/p.rendaDesejada*100)}% da renda desejada. Para chegar lá, o aporte precisaria ser de ${isFinite(nec)?fmtBRL(nec)+" por mês":"um valor fora de alcance"}, ou é possível adiar a aposentadoria ou ajustar a meta.`}
+    :{t:"Mantenha o plano e revise uma vez por ano",d:`A renda projetada de ${fmtBRL(total)} por mês cobre a meta de ${fmtBRL(p.rendaDesejada)}.`});
 
   const marcos=[];
   for(let a=p.idade;a<=p.idadeFim;a+=5){
@@ -790,29 +781,34 @@ function renderC(p,res,best,G){
   <section class="rep-sec"><h3>O que fazer, em ordem</h3>
     <ol class="steps">${st.map(x=>`<li><div><b>${x.t}</b><p>${x.d}</p></div></li>`).join("")}</ol>
   </section>
-  <section class="rep-sec"><h3>Escala de aportes por objetivo</h3>
+  <section class="rep-sec"><h3>Seus objetivos e quanto guardar para cada um</h3>
+    <p class="rep-prem" style="font-size:13.5px">Do total de ${fmtBRL(p.capacidade)} por mês, a reserva de emergência vem primeiro e depois os objetivos mais importantes. Quando um objetivo é cumprido, o valor dele passa para os seguintes.</p>
     <div class="tbl-wrap"><table><thead><tr><th>Objetivo</th><th>Prazo</th><th>Aporte/mês</th><th style="text-align:left">Onde investir</th></tr></thead>
-    <tbody>${G.order.map(it=>`<tr><td><span class="sname"><i style="background:${it.color}"></i>${esc(it.nome)}</span></td><td>${it.anos} ${it.anos===1?"ano":"anos"}</td><td>${it.escTxt}${it.cob<.995?`<span class="sub">atinge ${Math.round(it.cob*100)}%</span>`:""}</td><td class="wrap-cell">${esc(it.onde)}</td></tr>`).join("")}</tbody></table></div>
-    <ol class="steps" style="margin-top:6px">${G.fases.filter(f=>f.de<p.idadeApos).map(f=>`<li><div><b>Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)} por mês</b><p>${f.ativos.map(a=>`${esc(a.nome)} ${fmtBRL(a.v)}`).join(" · ")}${f.livre>.5?` · livre ${fmtBRL(f.livre)}`:""}</p></div></li>`).join("")}</ol>
+    <tbody>${G.order.map(it=>`<tr><td><span class="sname"><i style="background:${it.color}"></i>${esc(it.nome)}</span></td><td>${it.anos} ${it.anos===1?"ano":"anos"}</td><td>${repEsc(it,p)}${it.cob<.995?`<span class="sub">atinge ${Math.round(it.cob*100)}%</span>`:""}</td><td class="wrap-cell">${esc(it.onde)}</td></tr>`).join("")}</tbody></table></div>
+    <ol class="steps" style="margin-top:6px">${G.fases.filter(f=>f.de<p.idadeApos).map(f=>`<li><div><b>Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)} por mês</b><p>${f.ativos.map(a=>`${esc(a.nome)} ${fmtBRL(a.v)}`).join(" · ")}${f.livre>.5?` · sobram ${fmtBRL(f.livre)}`:""}</p></div></li>`).join("")}</ol>
   </section>
-  <section class="rep-sec"><h3>Projeção a cada 5 anos</h3>
-    <div class="tbl-wrap"><table><thead><tr><th>Idade</th><th>Fase</th><th>Patrimônio</th><th>Renda mensal total</th></tr></thead>
+  <section class="rep-sec"><h3>Seu patrimônio e sua renda ao longo da vida</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>Idade</th><th>Fase</th><th>Patrimônio</th><th>Renda mensal</th></tr></thead>
     <tbody>${marcos.map(m=>`<tr><td>${m.a} anos</td><td style="text-align:right">${m.fase}</td><td>${fmtBRL(m.saldo)}</td><td>${m.renda==null?'<span class="muted">—</span>':fmtBRL(m.renda)}</td></tr>`).join("")}</tbody></table></div>
   </section>
-  <p class="rep-prem">Premissas: rentabilidade real de ${fmtPct(p.rentReal/100,2)} a.a., inflação de ${fmtPct(p.infl/100,2)} a.a., taxa de administração de ${fmtPct(p.taxaAdm/100,2)} a.a., aportes ${p.reajusta===1?"corrigidos pela inflação":"fixos"}, renda extra de ${fmtBRL(p.outrasRendas)}/mês a partir dos ${p.outrasDesde} anos. Valores em reais de hoje. Simulação com premissas constantes e regras do IR de 2026; não é garantia de rentabilidade.</p>`;
+  <p class="rep-prem">${premTxt(p)}</p>`;
 
   reportText=[`PLANO DE APOSENTADORIA – ${nome}`,`${hoje}`,"",
     `Recomendação: ${comp}, declaração ${ideal}${ra?`, regime ${regRec}`:""}.`,
     `Patrimônio aos ${p.idadeApos}: ${fmtK(sel.saldo)} | Renda mensal: ${fmtBRL(total)} | Economia de IR: ${econ>1?fmtBRL(econ)+"/ano":"—"}`,"",
     ...(stairD?["QUANTO ACUMULAR ATÉ A APOSENTADORIA",`Patrimônio necessário aos ${p.idadeApos}: ${fmtK(stairD.meta)} | Aporte necessário: ${fmtBRL(nec)}/mês`,...stairD.pts.map(x=>`Aos ${x.a} anos: ${fmtK(x.need)} (com o aporte atual: ${fmtK(x.now)})`),""]:[]),
     "O QUE FAZER, EM ORDEM",...st.map((x,i)=>`${i+1}. ${x.t}\n   ${x.d}`),"",
-    "ESCALA DE APORTES POR OBJETIVO",...G.order.map(it=>`- ${it.nome} (${it.anos} ${it.anos===1?"ano":"anos"}): ${it.escTxt}/mês${it.cob<.995?` (atinge ${Math.round(it.cob*100)}%)`:""} · ${it.onde}`),
-    ...G.fases.filter(f=>f.de<p.idadeApos).map(f=>`Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)}/mês (${f.ativos.map(a=>`${a.nome} ${fmtBRL(a.v)}`).join(", ")}${f.livre>.5?`, livre ${fmtBRL(f.livre)}`:""})`),
+    "SEUS OBJETIVOS E QUANTO GUARDAR PARA CADA UM",...G.order.map(it=>`- ${it.nome} (${it.anos} ${it.anos===1?"ano":"anos"}): ${repEsc(it,p)} por mês${it.cob<.995?` (atinge ${Math.round(it.cob*100)}%)`:""} · ${it.onde}`),
+    ...G.fases.filter(f=>f.de<p.idadeApos).map(f=>`Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)}/mês (${f.ativos.map(a=>`${a.nome} ${fmtBRL(a.v)}`).join(", ")}${f.livre>.5?`, sobram ${fmtBRL(f.livre)}`:""})`),
     ...(p.obs?["","OBSERVAÇÕES",p.obs]:[]),"",
-    "Valores em reais de hoje. Simulação com premissas constantes; não é garantia de rentabilidade.","",
+    premTxt(p),"",
     "Isabel Abreu | Economista e Planejadora Financeira"].join("\n");
   lastRep={p,nome,hoje,sel,total,extraMedia,econ,st,marcos,stairD,nec,G,lead:$("resC").querySelector(".rep-lead").textContent.trim()};
 }
+function repEsc(it,p){if(it.max<=.5)return "R$ 0";const k=it.hist.findIndex(x=>x>.5);
+  if(it.alloc<=.5&&k>0)return `${fmtBRL(it.max)} a partir dos ${p.idade+Math.floor(k/12)} anos`;
+  return Math.abs(it.max-it.alloc)<Math.max(5,it.alloc*.01)?fmtBRL(it.alloc):`${fmtBRL(it.alloc)}, subindo para ${fmtBRL(it.max)}`}
+function premTxt(p){return `Como lemos estes números: todos os valores estão em reais de hoje, ou seja, já descontada a inflação. A conta considera os investimentos rendendo ${fmtPct(p.rentReal/100,2)} ao ano acima da inflação, taxa de administração de ${fmtPct(p.taxaAdm/100,2)} ao ano, aportes ${p.reajusta===1?"corrigidos pela inflação":"fixos"}${p.outrasRendas>0?` e outras rendas de ${fmtBRL(p.outrasRendas)} por mês a partir dos ${p.outrasDesde} anos`:""}, com as regras do IR de 2026. É uma simulação, não uma garantia de rentabilidade.`}
 /* ---------- PDF do relatório ---------- */
 let DL=null;
 try{if(window.claude&&typeof window.claude.use==="function")window.claude.use("downloads").then(x=>{DL=x}).catch(()=>{})}catch(_){}
@@ -872,17 +868,21 @@ function buildPdf(R){
     headStyles:{fillColor:NAVY,textColor:[246,241,234]},columnStyles:cols,margin:{left:LM,right:210-RM,bottom:30,top:20},rowPageBreak:"avoid",...opts});
     y=(doc.lastAutoTable?doc.lastAutoTable.finalY:y)+6};
   // escala de aportes
-  if(R.G){h2("Escala de aportes por objetivo");
-    tbl(["Objetivo","Prazo","Aporte/mês","Atinge","Onde investir"],R.G.order.map(it=>[pdfTxt(it.nome),`${it.anos} ${it.anos===1?"ano":"anos"}`,pdfTxt(it.escTxt),`${Math.round(it.cob*100)}%`,pdfTxt(it.onde)]),
+  if(R.G){h2("Seus objetivos e quanto guardar para cada um");
+    para(`Do total de ${fmtBRL(p.capacidade)} por mês, a reserva de emergência vem primeiro e depois os objetivos mais importantes. Quando um objetivo é cumprido, o valor dele passa para os seguintes.`,9,MUTED);y+=2;
+    const parc=R.G.order.some(it=>it.cob<.995);
+    if(parc)tbl(["Objetivo","Prazo","Aporte/mês","Atinge","Onde investir"],R.G.order.map(it=>[pdfTxt(it.nome),`${it.anos} ${it.anos===1?"ano":"anos"}`,pdfTxt(repEsc(it,p)),`${Math.round(it.cob*100)}%`,pdfTxt(it.onde)]),
       {0:{cellWidth:38,fontStyle:"bold"},1:{cellWidth:18},2:{cellWidth:40},3:{cellWidth:16},4:{cellWidth:70}});
+    else tbl(["Objetivo","Prazo","Aporte/mês","Onde investir"],R.G.order.map(it=>[pdfTxt(it.nome),`${it.anos} ${it.anos===1?"ano":"anos"}`,pdfTxt(repEsc(it,p)),pdfTxt(it.onde)]),
+      {0:{cellWidth:40,fontStyle:"bold"},1:{cellWidth:18},2:{cellWidth:46},3:{cellWidth:78}});
     R.G.fases.filter(f=>f.de<p.idadeApos).forEach(f=>{need(10);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...INK);T(`Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)} por mês`,LM,y);y+=4.3;
-      para(f.ativos.map(a=>`${a.nome} ${fmtBRL(a.v)}`).join(" · ")+(f.livre>.5?` · livre ${fmtBRL(f.livre)}`:""),8.5,MUTED);y+=2});
+      para(f.ativos.map(a=>`${a.nome} ${fmtBRL(a.v)}`).join(" · ")+(f.livre>.5?` · sobram ${fmtBRL(f.livre)}`:""),8.5,MUTED);y+=2});
   }
   // projeção
-  h2("Projeção a cada 5 anos");
-  tbl(["Idade","Fase","Patrimônio","Renda mensal total"],R.marcos.map(m=>[`${m.a} anos`,m.fase,fmtBRL(m.saldo),m.renda==null?"-":fmtBRL(m.renda)]),{0:{cellWidth:30},1:{cellWidth:40},2:{halign:"right"},3:{halign:"right"}});
+  h2("Seu patrimônio e sua renda ao longo da vida");
+  tbl(["Idade","Fase","Patrimônio","Renda mensal"],R.marcos.map(m=>[`${m.a} anos`,m.fase,fmtBRL(m.saldo),m.renda==null?"-":fmtBRL(m.renda)]),{0:{cellWidth:30},1:{cellWidth:40},2:{halign:"right"},3:{halign:"right"}});
   if(p.obs&&p.obs.trim()){h2("Observações da planejadora");para(p.obs,9.5)}
-  y+=2;para(`Premissas: rentabilidade real de ${fmtPct(p.rentReal/100,2)} a.a., inflação de ${fmtPct(p.infl/100,2)} a.a., taxa de administração de ${fmtPct(p.taxaAdm/100,2)} a.a., aportes ${p.reajusta===1?"corrigidos pela inflação":"fixos"}, renda extra de ${fmtBRL(p.outrasRendas)}/mês a partir dos ${p.outrasDesde} anos. Valores em reais de hoje. Simulação com premissas constantes e regras do IR de 2026; não é garantia de rentabilidade.`,7.8,MUTED);
+  y+=2;para(premTxt(p),7.8,MUTED);
   const n=doc.getNumberOfPages();
   for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont("helvetica","italic");doc.setFontSize(8);doc.setTextColor(...MUTED);
     doc.text("Isabel Abreu — Economista e Planejadora Financeira · simulação educativa, não é recomendação de produto.",LM,284);
