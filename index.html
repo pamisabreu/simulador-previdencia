@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Simulador de Previdência · Isabel Abreu</title><meta name="robots" content="noindex"><style>[hidden]{display:none!important}</style>
+<title>Simulador de Aposentadoria e Previdência · Isabel Abreu</title><meta name="robots" content="noindex">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -180,11 +180,67 @@ th.win{color:var(--ink)}
 .rep-sign span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 @media (max-width:620px){.rep-nums{grid-template-columns:minmax(0,1fr)}.rep-head .meta{text-align:left}}
 @media print{
-  .app-header,.page-title,.foot,[data-view]:not(#page-relatorio){display:none!important}
+  .app-header,.page-title,.foot,.rep-tools,[data-view]:not(#page-relatorio){display:none!important}
   #page-relatorio{display:block!important}
   body{background:#fff}
   .report{border:0;box-shadow:none;padding:0;max-width:none}
 }
+/* capa */
+[hidden]{display:none!important}
+body.on-cover .tabs,body.on-cover .head-tools,body.on-cover .foot{display:none}
+.btn-primary{background:var(--btn-bg);color:var(--btn-fg);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.08);border-color:transparent}
+.btn-lg{padding:14px 26px;font-size:15px}
+.cover{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center;padding-block:56px 64px}
+.cover h1{font-size:clamp(34px,5vw,56px);line-height:1.08;margin-top:10px}
+.cover-sub{font-size:18px;color:var(--muted);margin:14px 0 28px}
+.cover form{display:flex;flex-direction:column;gap:10px;max-width:440px}
+.cover form label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.cover form .btn{align-self:flex-start;margin-top:6px}
+.err{font-size:12.5px;color:var(--danger);font-weight:600}
+.cover-visual{width:100%;max-width:400px;justify-self:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.cv-head{background:var(--band-bg);color:var(--band-fg);padding:18px 22px}
+.cv-head small{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--band-accent)}
+.cv-head strong{display:block;font-family:var(--f-display);font-size:22px;font-weight:600;margin-top:4px}
+.cv-head strong em{font-style:italic;font-weight:400;color:var(--band-accent)}
+.cv-row{display:grid;grid-template-columns:4px minmax(0,1fr);gap:14px;padding:16px 22px;border-top:1px solid var(--line)}
+.cv-row:first-of-type{border-top:0}
+.cv-row>i{border-radius:4px}
+.cv-row h3{font-family:var(--f-body);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.cv-row ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.cv-row li{font-size:13px;background:var(--surface-2);border-radius:999px;padding:3px 10px}
+.cv-a>i{background:var(--gold)} .cv-a h3{color:var(--gold)}
+.cv-b>i{background:var(--blue)} .cv-b h3{color:var(--blue)}
+.cv-c>i{background:var(--terra)} .cv-c h3{color:var(--terra)}
+.cv-foot{padding:12px 22px;background:var(--surface-2);font-size:13px;color:var(--muted);font-weight:600}
+@media (max-width:760px){.cover{grid-template-columns:minmax(0,1fr);padding-block:32px 40px}.cover-visual{max-width:none}}
+/* escala de aportes (GBI) */
+.gbi-title{border-top:1px solid var(--line);margin-top:8px}
+.goal-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);display:flex;flex-direction:column;gap:10px}
+.goal-item+.goal-item{margin-top:10px}
+.goal-item .affix{background:var(--surface)}
+.gi-top{display:flex;gap:8px;align-items:center}
+.gi-top .affix{flex:1}
+.gi-top i{width:10px;height:10px;border-radius:3px;flex:none}
+.icon-btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;color:var(--muted);flex:none}
+.icon-btn:hover{border-color:var(--danger);color:var(--danger)}
+.gi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.add-goal{margin-top:12px}
+.ladder{display:flex;flex-direction:column;gap:16px}
+.lr-head{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:700;flex-wrap:wrap}
+.lr-head span{color:var(--muted);font-weight:600}
+.lr-bar{display:flex;height:26px;border-radius:8px;overflow:hidden;background:var(--surface-2);margin-top:6px}
+.lr-bar i{display:block;height:100%;min-width:2px}
+.lr-bar i.free{background:repeating-linear-gradient(45deg,var(--surface-2) 0 6px,var(--line) 6px 12px)}
+.lr-items{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.lr-items span{display:inline-flex;align-items:center;gap:6px}
+.lr-items i{width:9px;height:9px;border-radius:2px}
+.lr-items b{color:var(--ink);font-variant-numeric:tabular-nums}
+.cov-cell{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.mini-bar{width:54px;height:6px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.mini-bar i{display:block;height:100%}
+td.wrap-cell{white-space:normal;min-width:170px;text-align:left;font-size:12.5px;color:var(--muted)}
+@media (max-width:620px){.gi-grid{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -193,14 +249,38 @@ th.win{color:var(--ink)}
     <div class="brand"><b>Isabel Abreu</b><span>Economista e Planejadora Financeira</span></div>
     <nav class="tabs" aria-label="Páginas do simulador">
       <a href="#aposentadoria" data-page="aposentadoria">Aposentadoria</a>
-      <a href="#pgbl-vgbl" data-page="pgbl-vgbl">PGBL x VGBL e IR</a>
+      <a href="#pgbl-vgbl" data-page="pgbl-vgbl">Previdência e aportes</a>
       <a href="#relatorio" data-page="relatorio">Relatório</a>
     </nav>
-    <div class="head-tools"><button class="btn" id="btnReset" type="button">Voltar ao exemplo</button></div>
+    <div class="head-tools"><button class="btn" id="btnReset" type="button">Voltar ao exemplo</button><button class="btn" id="btnNew" type="button">Nova simulação</button></div>
   </div>
 </header>
 
 <main class="wrap">
+<!-- ===================== CAPA ===================== -->
+<section id="page-inicio" data-view hidden>
+  <div class="cover">
+    <div>
+      <span class="eyebrow">Simulação de aposentadoria e previdência</span>
+      <h1>Chegou a hora de planejar a sua <em>aposentadoria</em></h1>
+      <p class="cover-sub">Vamos calcular quanto guardar e onde investir para cada objetivo.</p>
+      <form id="coverForm" novalidate>
+        <label for="coverName">Seu nome e sobrenome</label>
+        <div class="affix"><input id="coverName" type="text" autocomplete="name"></div>
+        <p class="err" id="coverErr" hidden></p>
+        <button type="submit" class="btn btn-primary btn-lg">Iniciar simulação →</button>
+      </form>
+    </div>
+    <div class="cover-visual">
+      <div class="cv-head"><small>O que vamos calcular</small><strong>O caminho até a sua <em>independência</em></strong></div>
+      <div class="cv-row cv-a"><i></i><div><h3>Aposentadoria</h3><ul><li>Patrimônio acumulado</li><li>Renda mensal</li><li>Aporte para a meta</li></ul></div></div>
+      <div class="cv-row cv-b"><i></i><div><h3>Previdência</h3><ul><li>PGBL x VGBL</li><li>Declaração de IR</li><li>Regime de tributação</li></ul></div></div>
+      <div class="cv-row cv-c"><i></i><div><h3>Objetivos</h3><ul><li>Escala de aportes</li><li>Onde investir cada um</li></ul></div></div>
+      <div class="cv-foot">Ao final, relatório com as orientações em ordem</div>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== PÁGINA 1: APOSENTADORIA ===================== -->
 <section id="page-aposentadoria" data-view>
   <div class="page-title">
@@ -210,7 +290,7 @@ th.win{color:var(--ink)}
   </div>
   <div class="layout">
     <form class="form" onsubmit="return false" autocomplete="off">
-      <p class="sample">Os campos vêm com um exemplo (profissional liberal de 40 anos). Troque pelos dados do cliente. As duas páginas usam os mesmos dados.</p>
+      <p class="sample">Os campos vêm com um exemplo (profissional liberal de 40 anos). Troque pelos dados do cliente. Todas as páginas usam os mesmos dados.</p>
       <section class="card">
         <h2><small>1</small>Cliente</h2>
         <div class="grid">
@@ -261,9 +341,9 @@ th.win{color:var(--ink)}
 <!-- ===================== PÁGINA 2: PGBL x VGBL ===================== -->
 <section id="page-pgbl-vgbl" data-view hidden>
   <div class="page-title">
-    <span class="eyebrow">PGBL x VGBL e declaração de IR</span>
-    <h1>Qual plano usar e <em>qual declaração</em> faz o cliente pagar menos</h1>
-    <p>Simplificada ou completa, quanto cabe no PGBL, quanto volta de restituição e como as estratégias se comparam com o mesmo aporte.</p>
+    <span class="eyebrow">Previdência e escala de aportes</span>
+    <h1>Qual plano usar e <em>quanto aportar</em> em cada objetivo</h1>
+    <p>Primeiro a previdência: PGBL ou VGBL, qual declaração de IR e quanto volta de restituição. Depois, a escala de aportes por objetivo, do mais urgente ao de longo prazo.</p>
   </div>
   <div class="layout">
     <form class="form" onsubmit="return false" autocomplete="off">
@@ -307,6 +387,40 @@ th.win{color:var(--ink)}
     </form>
     <div class="results" id="resB" aria-live="polite"></div>
   </div>
+
+  <div class="page-title gbi-title" id="gbi">
+    <span class="eyebrow">Escala de aportes por objetivo · GBI</span>
+    <h2 style="font-size:clamp(24px,3vw,32px)">Cada objetivo com o seu prazo, o seu aporte e <em>o seu investimento</em></h2>
+    <p>Investimento por objetivos (goals-based investing): a reserva de emergência vem primeiro, depois os objetivos por prioridade. A aposentadoria entra com o aporte necessário calculado na primeira página.</p>
+  </div>
+  <div class="layout">
+    <form class="form" onsubmit="return false" autocomplete="off">
+      <section class="card">
+        <h2><small>1</small>Capacidade e reserva</h2>
+        <div class="grid">
+          <div class="field full"><label for="g-cap">Quanto consegue investir por mês</label><div class="affix"><span class="pre">R$</span><input id="g-cap" data-key="capacidade" data-k="money" inputmode="decimal"><span class="post">/mês</span></div><span class="hint">Total disponível para todos os objetivos, aposentadoria incluída.</span></div>
+          <div class="field"><label for="g-custo">Custo de vida</label><div class="affix"><span class="pre">R$</span><input id="g-custo" data-key="custoVida" data-k="money" inputmode="decimal"><span class="post">/mês</span></div></div>
+          <div class="field"><label for="g-meses">Reserva de emergência</label><div class="affix"><input id="g-meses" data-key="mesesReserva" data-k="int" inputmode="numeric"><span class="post">meses</span></div></div>
+          <div class="field"><label for="g-resAtual">Reserva já guardada</label><div class="affix"><span class="pre">R$</span><input id="g-resAtual" data-key="reservaAtual" data-k="money" inputmode="decimal"></div></div>
+          <div class="field"><label for="g-resAnos">Completar a reserva em</label><div class="affix"><input id="g-resAnos" data-key="anosReserva" data-k="int" inputmode="numeric"><span class="post">anos</span></div></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2><small>2</small>Objetivos <span class="note">em valores de hoje</span></h2>
+        <div id="goalList"></div>
+        <button type="button" class="btn add-goal" id="addGoal">+ Adicionar objetivo</button>
+        <details class="adv">
+          <summary>Rentabilidade real por prazo</summary>
+          <div class="grid">
+            <div class="field"><label for="g-rCurto">Até 2 anos</label><div class="affix"><input id="g-rCurto" data-key="rCurto" data-k="pct" inputmode="decimal"><span class="post">% a.a.</span></div></div>
+            <div class="field"><label for="g-rMedio">De 2 a 5 anos</label><div class="affix"><input id="g-rMedio" data-key="rMedio" data-k="pct" inputmode="decimal"><span class="post">% a.a.</span></div></div>
+          </div>
+          <p class="hint" style="margin-top:10px">Acima de 5 anos vale a rentabilidade real da primeira página. Taxas acima da inflação, líquidas de IR.</p>
+        </details>
+      </section>
+    </form>
+    <div class="results" id="resG" aria-live="polite"></div>
+  </div>
 </section>
 
 <!-- ===================== PÁGINA 3: RELATÓRIO ===================== -->
@@ -314,7 +428,7 @@ th.win{color:var(--ink)}
   <div class="page-title">
     <span class="eyebrow">Relatório para o cliente</span>
     <h1>Orientações finais, <em>prontas para entregar</em></h1>
-    <p>Montado a partir das outras duas abas. Escreva suas observações no fim, copie o texto para WhatsApp ou e-mail, ou imprima pela cópia aberta no navegador.</p>
+    <p>Montado a partir das outras abas. Escreva suas observações no fim, copie o texto para WhatsApp ou e-mail, ou imprima pela cópia aberta no navegador.</p>
     <div class="rep-tools"><button class="btn" id="btnCopy" type="button">Copiar texto do relatório</button><span class="hint" id="copyMsg" role="status"></span></div>
   </div>
   <article class="report">
@@ -337,7 +451,12 @@ const DEFAULTS={nome:"",idade:40,idadeApos:60,idadeFim:95,rendaDesejada:25000,mo
   outrasRendas:4000,outrasDesde:65,aporte:4000,aporteExtra:0,inicial:50000,estrategia:"auto",reajusta:1,
   rentReal:4,infl:4,taxaAdm:0.6,taxaFora:0.2,
   renda:300000,contribui:1,inss:11800,dependentes:2,educacao:20000,saude:18000,pensao:0,livroCaixa:0,pgblExistente:0,irPago:58000,
-  reinveste:1,capSimpl:17640,dedDep:2275.08,obs:""};
+  reinveste:1,capSimpl:17640,dedDep:2275.08,obs:"",
+  capacidade:9000,custoVida:15000,mesesReserva:6,reservaAtual:40000,anosReserva:1,rCurto:2,rMedio:3,
+  goals:[{nome:"Viagem em família",valor:30000,anos:1,guardado:0,prio:"desejo"},
+         {nome:"Troca do carro",valor:120000,anos:3,guardado:20000,prio:"importante"},
+         {nome:"Entrada do apartamento",valor:300000,anos:6,guardado:60000,prio:"essencial"}]};
+const fresh=()=>JSON.parse(JSON.stringify(DEFAULTS));
 
 const $=id=>document.getElementById(id);
 const fmtBRL=(v,d=0)=>(v<0?"−":"")+"R$ "+Math.abs(isFinite(v)?v:0).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -346,9 +465,10 @@ const fmtPct=(v,d=1)=>(v*100).toLocaleString("pt-BR",{maximumFractionDigits:d})+
 const parse=s=>{s=String(s).trim().replace(/[^\d,.-]/g,"");if(!s)return 0;if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");const n=parseFloat(s);return isFinite(n)?n:0};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-const STORE="simPrevIsabel.v2";
-let state={...DEFAULTS};
-try{const s=JSON.parse(localStorage.getItem(STORE)||"null");if(s)state={...DEFAULTS,...s}}catch(e){}
+const STORE="simPrevIsabel.v3";
+let state=fresh();
+try{const s=JSON.parse(localStorage.getItem(STORE)||"null");if(s)state={...fresh(),...s}}catch(e){}
+if(!Array.isArray(state.goals))state.goals=fresh().goals;
 state.rentReal=Math.min(6,Math.max(4,+state.rentReal||4));
 
 /* ---------- formulário ---------- */
@@ -361,6 +481,7 @@ function showField(el){const k=el.dataset.k,v=state[el.dataset.key];
 function fillForm(except){
   fields.forEach(el=>{if(el!==except)showField(el)});
   document.querySelectorAll("[data-seg]").forEach(g=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(state[g.dataset.seg])))));
+  if(!except||!except.closest("#goalList"))renderGoalList();
 }
 fields.forEach(el=>{
   const ev=el.tagName==="SELECT"?"change":"input";
@@ -371,12 +492,47 @@ fields.forEach(el=>{
 });
 document.querySelectorAll("[data-seg]").forEach(g=>g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
   const v=b.dataset.v;state[g.dataset.seg]=/^\d+$/.test(v)?+v:v;fillForm();update()}));
-$("btnReset").addEventListener("click",()=>{state={...DEFAULTS};fillForm();update()});
+$("btnReset").addEventListener("click",()=>{const n=state.nome;state=fresh();state.nome=n;fillForm();update()});
+$("btnNew").addEventListener("click",()=>{state=fresh();fillForm();update();go("inicio")});
+
+/* ---------- capa ---------- */
+function nameError(n){n=n.trim();if(!n)return "Preencha este campo.";if(!n.includes(" "))return "Informe nome e sobrenome.";return ""}
+$("coverForm").addEventListener("submit",e=>{e.preventDefault();
+  const inp=$("coverName"),msg=nameError(inp.value),er=$("coverErr");
+  er.hidden=!msg;er.textContent=msg;if(msg){inp.focus();return}
+  state.nome=inp.value.trim().replace(/\s+/g," ");fillForm();update();go("aposentadoria")});
+function go(page){show(page);window.scrollTo(0,0);try{history.replaceState(null,"","#"+page)}catch(err){}
+  if(page==="inicio")setTimeout(()=>{$("coverName").value=state.nome||"";$("coverName").focus()},0)}
+
+/* ---------- lista de objetivos ---------- */
+const PRIO={essencial:"Essencial",importante:"Importante",desejo:"Desejo"};
+const GCOL=["var(--blue)","var(--terra)","var(--c1)","var(--gold-soft)","var(--green)","var(--c3)"];
+const moneyStr=v=>(+v||0).toLocaleString("pt-BR",{maximumFractionDigits:2});
+function renderGoalList(){
+  $("goalList").innerHTML=state.goals.map((g,i)=>`<div class="goal-item" data-i="${i}">
+    <div class="gi-top"><i style="background:${GCOL[i%GCOL.length]}"></i><div class="affix"><input data-g="nome" value="${esc(g.nome)}" placeholder="Nome do objetivo" aria-label="Nome do objetivo ${i+1}"></div>
+      <button type="button" class="icon-btn" data-del="${i}" aria-label="Remover ${esc(g.nome||"objetivo")}">✕</button></div>
+    <div class="gi-grid">
+      <div class="field"><label>Valor</label><div class="affix"><span class="pre">R$</span><input data-g="valor" data-gk="money" inputmode="decimal" value="${moneyStr(g.valor)}"></div></div>
+      <div class="field"><label>Prazo</label><div class="affix"><input data-g="anos" data-gk="int" inputmode="numeric" value="${g.anos}"><span class="post">anos</span></div></div>
+      <div class="field"><label>Já guardado</label><div class="affix"><span class="pre">R$</span><input data-g="guardado" data-gk="money" inputmode="decimal" value="${moneyStr(g.guardado)}"></div></div>
+      <div class="field"><label>Prioridade</label><div class="affix"><select data-g="prio">${Object.entries(PRIO).map(([k,v])=>`<option value="${k}"${g.prio===k?" selected":""}>${v}</option>`).join("")}</select></div></div>
+    </div></div>`).join("")||'<p class="hint">Nenhum objetivo além da reserva e da aposentadoria.</p>';
+}
+const gl=$("goalList");
+const onGoal=e=>{const el=e.target.closest("[data-g]");if(!el)return;const i=+el.closest(".goal-item").dataset.i,k=el.dataset.g;
+  state.goals[i][k]=el.dataset.gk?parse(el.value):el.value;if(k==="nome")el.closest(".goal-item").querySelector("[data-del]").setAttribute("aria-label","Remover "+(el.value||"objetivo"));update()};
+gl.addEventListener("input",onGoal);gl.addEventListener("change",onGoal);
+gl.addEventListener("focusout",e=>{const el=e.target.closest("[data-gk=money]");if(el)el.value=moneyStr(parse(el.value))});
+gl.addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;state.goals.splice(+b.dataset.del,1);renderGoalList();update()});
+$("addGoal").addEventListener("click",()=>{state.goals.push({nome:"",valor:50000,anos:5,guardado:0,prio:"importante"});renderGoalList();update();
+  const items=gl.querySelectorAll(".goal-item");items[items.length-1]?.querySelector("input")?.focus()});
 
 /* ---------- abas (hash) ---------- */
-document.querySelectorAll(".tabs a").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();show(a.dataset.page);window.scrollTo(0,0);try{history.replaceState(null,"","#"+a.dataset.page)}catch(err){}}));
+document.querySelectorAll(".tabs a").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();go(a.dataset.page)}));
 function route(){show(location.hash.replace("#",""))}
-function show(h){const page=["pgbl-vgbl","relatorio"].includes(h)?h:"aposentadoria";
+function show(h){const page=["aposentadoria","pgbl-vgbl","relatorio"].includes(h)?h:"inicio";
+  document.body.classList.toggle("on-cover",page==="inicio");
   document.querySelectorAll("[data-view]").forEach(v=>v.hidden=v.id!=="page-"+page);
   document.querySelectorAll(".tabs a").forEach(a=>a.dataset.page===page?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));}
 window.addEventListener("hashchange",()=>{route();window.scrollTo(0,0)});
@@ -478,7 +634,12 @@ const STRATS=[
 const sById=id=>STRATS.find(s=>s.id===id);
 function bestOf(p,s,ap){if(s==="fora")return simulate(p,"fora","reg",ap);const a=simulate(p,s,"reg",ap),b=simulate(p,s,"prog",ap);return b.rendaLiq>a.rendaLiq?b:a}
 function escolher(res){let b=[...res].sort((x,y)=>y.rendaLiq-x.rendaLiq)[0];const mix=res.find(r=>r.strat==="mix");if(b.strat==="pgbl"&&mix.rendaLiq>=b.rendaLiq-1)b=mix;return b}
+let necCache=new Map();
 function aporteNecessario(p,s,alvo){
+  const key=s+"|"+Math.round(alvo);if(necCache.has(key))return necCache.get(key);
+  const v=aporteNecessario0(p,s,alvo);necCache.set(key,v);return v;
+}
+function aporteNecessario0(p,s,alvo){
   if(alvo<=0)return 0;
   const f=ap=>bestOf(p,s,ap).rendaLiq;
   let lo=0,hi=Math.max(1000,p.aporte*2);
@@ -527,14 +688,16 @@ let demoTab="renda";
 function update(){
   try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}
   const p={...state};
-  if(!(p.idadeApos>p.idade)||!(p.idadeFim>p.idadeApos)){const msg=`<div class="card"><p>Confira as idades: a aposentadoria vem depois da idade atual, e a idade final depois da aposentadoria.</p></div>`;$("resA").innerHTML=msg;$("resB").innerHTML=msg;return}
+  if(!(p.idadeApos>p.idade)||!(p.idadeFim>p.idadeApos)){const msg=`<div class="card"><p>Confira as idades: a aposentadoria vem depois da idade atual, e a idade final depois da aposentadoria.</p></div>`;$("resA").innerHTML=msg;$("resB").innerHTML=msg;$("resG").innerHTML=msg;return}
+  necCache=new Map();
   const res=STRATS.map(s=>bestOf(p,s.id,p.aporte));
   const best=escolher(res);
-  renderA(p,res,best);renderB(p,res,best);renderC(p,res,best);
+  const G=gbi(p,res,best);
+  renderA(p,res,best);renderB(p,res,best);renderG(p,G);renderC(p,res,best,G);
 }
 
 let reportText="";
-function renderC(p,res,best){
+function renderC(p,res,best,G){
   const sel=p.estrategia==="auto"?best:res.find(r=>r.strat===p.estrategia)||best;
   const s=sById(sel.strat);
   const usaPGBL=sel.strat==="mix"||sel.strat==="pgbl";
@@ -597,6 +760,11 @@ function renderC(p,res,best){
   <section class="rep-sec"><h3>O que fazer, em ordem</h3>
     <ol class="steps">${st.map(x=>`<li><div><b>${x.t}</b><p>${x.d}</p></div></li>`).join("")}</ol>
   </section>
+  <section class="rep-sec"><h3>Escala de aportes por objetivo</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>Objetivo</th><th>Prazo</th><th>Aporte/mês</th><th style="text-align:left">Onde investir</th></tr></thead>
+    <tbody>${G.order.map(it=>`<tr><td><span class="sname"><i style="background:${it.color}"></i>${esc(it.nome)}</span></td><td>${it.anos} ${it.anos===1?"ano":"anos"}</td><td>${it.escTxt}${it.cob<.995?`<span class="sub">atinge ${Math.round(it.cob*100)}%</span>`:""}</td><td class="wrap-cell">${esc(it.onde)}</td></tr>`).join("")}</tbody></table></div>
+    <ol class="steps" style="margin-top:6px">${G.fases.filter(f=>f.de<p.idadeApos).map(f=>`<li><div><b>Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)} por mês</b><p>${f.ativos.map(a=>`${esc(a.nome)} ${fmtBRL(a.v)}`).join(" · ")}${f.livre>.5?` · livre ${fmtBRL(f.livre)}`:""}</p></div></li>`).join("")}</ol>
+  </section>
   <section class="rep-sec"><h3>Projeção a cada 5 anos</h3>
     <div class="tbl-wrap"><table><thead><tr><th>Idade</th><th>Fase</th><th>Patrimônio</th><th>Renda mensal total</th></tr></thead>
     <tbody>${marcos.map(m=>`<tr><td>${m.a} anos</td><td style="text-align:right">${m.fase}</td><td>${fmtBRL(m.saldo)}</td><td>${m.renda==null?'<span class="muted">—</span>':fmtBRL(m.renda)}</td></tr>`).join("")}</tbody></table></div>
@@ -606,7 +774,9 @@ function renderC(p,res,best){
   reportText=[`PLANO DE APOSENTADORIA – ${nome}`,`${hoje}`,"",
     `Recomendação: ${comp}, declaração ${ideal}${ra?`, regime ${regRec}`:""}.`,
     `Patrimônio aos ${p.idadeApos}: ${fmtK(sel.saldo)} | Renda mensal: ${fmtBRL(total)} | Economia de IR: ${econ>1?fmtBRL(econ)+"/ano":"—"}`,"",
-    "O QUE FAZER, EM ORDEM",...st.map((x,i)=>`${i+1}. ${x.t}\n   ${x.d}`),
+    "O QUE FAZER, EM ORDEM",...st.map((x,i)=>`${i+1}. ${x.t}\n   ${x.d}`),"",
+    "ESCALA DE APORTES POR OBJETIVO",...G.order.map(it=>`- ${it.nome} (${it.anos} ${it.anos===1?"ano":"anos"}): ${it.escTxt}/mês${it.cob<.995?` (atinge ${Math.round(it.cob*100)}%)`:""} · ${it.onde}`),
+    ...G.fases.filter(f=>f.de<p.idadeApos).map(f=>`Dos ${f.de} aos ${f.ate} anos: ${fmtBRL(f.total)}/mês (${f.ativos.map(a=>`${a.nome} ${fmtBRL(a.v)}`).join(", ")}${f.livre>.5?`, livre ${fmtBRL(f.livre)}`:""})`),
     ...(p.obs?["","OBSERVAÇÕES",p.obs]:[]),"",
     "Valores em reais de hoje. Simulação com premissas constantes; não é garantia de rentabilidade.","",
     "Isabel Abreu | Economista e Planejadora Financeira"].join("\n");
@@ -616,6 +786,101 @@ $("btnCopy").addEventListener("click",()=>{
   const fallback=()=>{const b=$("copyBuf");b.value=reportText;b.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}msg.textContent=ok?"Texto copiado.":"Não deu para copiar automaticamente. Selecione o relatório e copie."};
   try{navigator.clipboard.writeText(reportText).then(()=>msg.textContent="Texto copiado.",fallback)}catch(e){fallback()}
 });
+
+/* ---------- escala de aportes por objetivo (GBI) ---------- */
+function taxaPrazo(p,anos){return anos<=2?p.rCurto:anos<=5?p.rMedio:p.rentReal}
+function pmt(valor,guardado,anos,taxa){const n=Math.max(1,Math.round(anos*12)),r=Math.pow(1+taxa/100,1/12)-1,f=Math.pow(1+r,n);
+  const falta=valor-guardado*f;if(falta<=0)return 0;return r>1e-9?falta*r/(f-1):falta/n}
+function fv(aporte,guardado,anos,taxa){const n=Math.max(1,Math.round(anos*12)),r=Math.pow(1+taxa/100,1/12)-1,f=Math.pow(1+r,n);
+  return guardado*f+(r>1e-9?aporte*(f-1)/r:aporte*n)}
+function ondeInvestir(anos){return anos<=2?"Renda fixa pós-fixada: Tesouro Selic, CDB com liquidez":anos<=5?"Renda fixa: CDB, LCI/LCA, Tesouro Prefixado":"Tesouro IPCA+ ou VGBL"}
+function pmtN(valor,saldo,n,taxa){const r=Math.pow(1+taxa/100,1/12)-1,f=Math.pow(1+r,n);const falta=valor-saldo*f;if(falta<=0)return 0;return r>1e-9?falta*r/(f-1):falta/n}
+function gbi(p,res,best){
+  const sel=p.estrategia==="auto"?best:res.find(r=>r.strat===p.estrategia)||best;
+  const extraMedia=sel.dec.reduce((a,d)=>a+d.extra,0)/Math.max(1,sel.dec.length);
+  const alvo=Math.max(0,p.rendaDesejada-extraMedia), nec=aporteNecessario(p,sel.strat,alvo);
+  const horizAp=Math.max(1,p.idadeApos-p.idade), items=[], lim=limitePGBL(p);
+  const resAlvo=p.custoVida*p.mesesReserva, resAnos=Math.max(1,Math.round(p.anosReserva||1));
+  items.push({key:"reserva",nome:"Reserva de emergência",color:"var(--green)",valor:resAlvo,guardado:p.reservaAtual,anos:resAnos,taxa:p.rCurto,prio:"essencial",ord:0,
+    onde:"Liquidez diária: Tesouro Selic, CDB com liquidez diária",valorTxt:`${p.mesesReserva} meses de custo de vida`});
+  state.goals.forEach((g,i)=>{const anos=Math.max(1,Math.round(g.anos||1));
+    items.push({key:"g"+i,nome:g.nome||`Objetivo ${i+1}`,color:GCOL[i%GCOL.length],valor:+g.valor||0,guardado:+g.guardado||0,anos,taxa:taxaPrazo(p,anos),prio:g.prio,ord:{essencial:1,importante:2,desejo:3}[g.prio]||2,onde:ondeInvestir(anos)})});
+  const apNeed=isFinite(nec)?nec:p.aporte;
+  const apAlvo=fv(apNeed,p.inicial,horizAp,p.rentReal);
+  items.push({key:"apos",nome:"Aposentadoria",color:"var(--gold)",valor:apAlvo,valorTxt:`renda de ${fmtBRL(p.rendaDesejada)}/mês`,guardado:p.inicial,anos:horizAp,taxa:p.rentReal,prio:"essencial",ord:1,semAlcance:!isFinite(nec),
+    onde:sel.strat==="mix"?(lim>0?`PGBL até ${fmtBRL(lim/12)} por mês (12% da renda), o restante em VGBL`:"VGBL"):sel.strat==="pgbl"?"PGBL":sel.strat==="vgbl"?"VGBL":"Fora da previdência: Tesouro IPCA+, fundos"});
+  items.forEach(it=>{it.need=pmtN(it.valor,it.guardado,it.anos*12,it.taxa);it.saldo=it.guardado;it.r=Math.pow(1+it.taxa/100,1/12)-1;it.hist=[]});
+  const order=[...items].sort((a,b)=>a.key==="reserva"?-1:b.key==="reserva"?1:a.ord-b.ord||a.anos-b.anos);
+  const H=Math.max(...items.map(i=>i.anos))*12, Hap=horizAp*12, meses=[];
+  for(let m=0;m<H;m++){let rest=m<Hap?p.capacidade:0;const vec={};
+    for(const it of order){const n=it.anos*12-m;if(n<=0)continue;
+      const req=pmtN(it.valor,it.saldo,n,it.taxa),g=Math.max(0,Math.min(req,rest));rest-=g;it.saldo=it.saldo*(1+it.r)+g;vec[it.key]=g;it.hist.push(g)}
+    meses.push({vec,livre:m<Hap?rest:0})}
+  items.forEach(it=>{it.final=it.saldo;it.cob=it.valor>0?Math.min(1,it.final/it.valor):1;
+    const pos=it.hist.filter(x=>x>.5);it.alloc=it.hist[0]||0;it.min=pos.length?Math.min(...pos):0;it.max=pos.length?Math.max(...pos):0;
+    it.escTxt=it.max<=.5?"R$ 0":Math.abs(it.max-it.alloc)<Math.max(5,it.alloc*.01)?fmtBRL(it.alloc):`${fmtBRL(it.alloc)} → ${fmtBRL(it.max)}`});
+  // fases: agrupa meses com a mesma divisão
+  const sig=v=>order.map(it=>Math.round((v.vec[it.key]||0)/10)).join(",")+"|"+Math.round(v.livre/10);
+  const fases=[];let cur=null;
+  meses.forEach((mv,m)=>{if(m>=Hap&&!Object.values(mv.vec).some(x=>x>.5))return;const k=sig(mv);
+    if(!cur||cur.k!==k){cur={k,m0:m,m1:m+1,sum:{},livre:0,n:0};fases.push(cur)}
+    cur.m1=m+1;cur.n++;cur.livre+=mv.livre;for(const key in mv.vec)cur.sum[key]=(cur.sum[key]||0)+mv.vec[key]});
+  const fasesOut=fases.map(f=>{const ativos=order.filter(it=>(f.sum[it.key]||0)/f.n>.5).map(it=>({key:it.key,nome:it.nome,color:it.color,v:f.sum[it.key]/f.n}));
+    return {de:p.idade+Math.round(f.m0/12),ate:p.idade+Math.round(f.m1/12),ativos,livre:f.livre/f.n,total:ativos.reduce((a,x)=>a+x.v,0)}}).filter(f=>f.ate>f.de);
+  const totalNeed=items.reduce((a,i)=>a+i.need,0);
+  return {items,order,fases:fasesOut,totalNeed,cap:p.capacidade,falta:Math.max(0,totalNeed-p.capacidade),sobra:Math.max(0,p.capacidade-totalNeed),nec,sel,apNeed}
+}
+function renderG(p,G){
+  const quem=p.nome?esc(p.nome.split(" ")[0]):"O cliente";
+  const N=G.items.length, atend=G.items.filter(i=>i.cob>=.995).length;
+  const head=atend===N?(G.sobra>1?`${quem} cumpre todos os objetivos e ainda sobram <em>${fmtBRL(G.sobra)}</em> por mês`:`${quem} cumpre <em>todos os ${N} objetivos</em> com ${fmtBRL(G.cap)} por mês`)
+    :`Com ${fmtBRL(G.cap)} por mês, <em>${atend} de ${N} objetivos</em> são cumpridos no prazo`;
+  const rows=G.order.map(it=>`<tr><td><span class="sname"><i style="background:${it.color}"></i>${esc(it.nome)}</span><span class="sub">${PRIO[it.prio]} · ${it.anos} ${it.anos===1?"ano":"anos"}</span></td>
+    <td>${it.key==="apos"?esc(it.valorTxt)+`<span class="sub">≈ ${fmtK(it.valor)} aos ${p.idadeApos}</span>`:fmtBRL(it.valor)+(it.valorTxt?`<span class="sub">${esc(it.valorTxt)}</span>`:"")}</td>
+    <td>${it.guardado>0?fmtBRL(it.guardado):"—"}</td><td>${it.semAlcance?"fora de alcance":fmtBRL(it.need)}</td>
+    <td><b>${it.escTxt}</b></td>
+    <td><span class="cov-cell">${Math.round(it.cob*100)}%<span class="mini-bar"><i style="width:${Math.round(it.cob*100)}%;background:${it.cob>=.995?"var(--green)":"var(--terra)"}"></i></span></span></td>
+    <td class="wrap-cell">${esc(it.onde)}</td></tr>`).join("");
+  const ladder=G.fases.map(f=>{const tot=Math.max(G.cap,f.total)||1;
+    const segs=f.ativos.map(a=>`<i style="width:${a.v/tot*100}%;background:${a.color}" title="${esc(a.nome)}: ${fmtBRL(a.v)}"></i>`).join("")+(f.livre>.5?`<i class="free" style="width:${f.livre/tot*100}%" title="Livre: ${fmtBRL(f.livre)}"></i>`:"");
+    return `<div><div class="lr-head">${f.de} a ${f.ate} anos <span>${fmtBRL(f.total)}/mês${f.livre>.5?` · ${fmtBRL(f.livre)} livres`:""}</span></div>
+      <div class="lr-bar" role="img" aria-label="Aportes dos ${f.de} aos ${f.ate} anos">${segs}</div>
+      <div class="lr-items">${f.ativos.map(a=>`<span><i style="background:${a.color}"></i>${esc(a.nome)} <b>${fmtBRL(a.v)}</b></span>`).join("")}${f.livre>.5?`<span><i style="background:var(--line)"></i>Livre <b>${fmtBRL(f.livre)}</b></span>`:""}</div></div>`}).join("");
+  const alerts=[];
+  G.order.filter(i=>i.cob<.995).forEach(it=>{
+    if(it.key==="apos")alerts.push(["warn",`<b>Aposentadoria chega a ${Math.round(it.cob*100)}% do patrimônio necessário.</b> O aporte sobe de ${fmtBRL(it.alloc)} para ${fmtBRL(it.max)} por mês conforme os outros objetivos terminam, mas não alcança a meta de ${fmtBRL(p.rendaDesejada)}/mês. Saídas: aumentar a capacidade de aporte, adiar a aposentadoria ou ajustar a meta.`]);
+    else if(it.max<=.5)alerts.push(["warn",`<b>${esc(it.nome)} fica sem aporte.</b> A capacidade acaba antes de chegar nele. Adie, reduza o valor ou aumente o aporte mensal.`]);
+    else alerts.push(["warn",`<b>${esc(it.nome)} chega a ${fmtBRL(it.final)} no prazo, ${Math.round(it.cob*100)}% do valor.</b> Adie alguns meses, reduza o valor ou aumente o aporte.`])});
+  for(let k=1;k<G.fases.length;k++){const f=G.fases[k],prev=G.fases[k-1];if(f.de>=p.idadeApos)break;
+    const fim=prev.ativos.filter(a=>!f.ativos.some(b=>b.key===a.key)).map(a=>esc(a.nome));
+    const sobe=f.ativos.filter(a=>{const o=prev.ativos.find(b=>b.key===a.key);return o&&a.v>o.v+5});
+    if(fim.length)alerts.push(["",`<b>Aos ${f.de} anos, ${fim.join(" e ")} ${fim.length>1?"terminam":"termina"}.</b> ${sobe.length?`O valor liberado vai para ${sobe.map(a=>`${esc(a.nome)} (agora ${fmtBRL(a.v)}/mês)`).join(" e ")}.`:f.livre>.5?`${fmtBRL(f.livre)} por mês ficam livres para reforçar a aposentadoria ou um novo objetivo.`:""}`])}
+  if(G.items[0].need<=0)alerts.push(["",`<b>Reserva de emergência completa.</b> Os ${fmtBRL(p.reservaAtual)} já cobrem ${p.mesesReserva} meses de custo de vida.`]);
+  $("resG").innerHTML=`
+  <div class="verdict">
+    <span class="eyebrow">${p.nome?esc(p.nome):"Escala de aportes"} · ${N} objetivos</span>
+    <h2>${head}</h2>
+    <p>A reserva vem primeiro, depois os objetivos essenciais, os importantes e os desejos; na mesma prioridade, o de prazo mais curto vem antes. Quando um objetivo termina, o valor que ele usava passa para os seguintes.</p>
+    <div class="kpis">
+      <div class="kpi"><span>Capacidade</span><b>${fmtBRL(G.cap)}</b><small>por mês</small></div>
+      <div class="kpi"><span>Necessário hoje</span><b>${fmtBRL(G.totalNeed)}</b><small>por mês, todos os objetivos</small></div>
+      <div class="kpi"><span>${G.falta>1?"Falta hoje":"Sobra hoje"}</span><b>${fmtBRL(G.falta>1?G.falta:G.sobra)}</b><small>por mês</small></div>
+      <div class="kpi"><span>Objetivos cumpridos</span><b>${atend} de ${N}</b><small>no prazo, com a escala</small></div>
+    </div>
+  </div>
+  <section class="card">
+    <h2>Escala de aportes <span class="note">quanto vai para cada objetivo em cada fase</span></h2>
+    <div class="ladder">${ladder}</div>
+  </section>
+  <section class="card">
+    <h2>Objetivos, aportes e onde investir</h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Objetivo</th><th>Valor</th><th>Já guardado</th><th>Aporte necessário hoje</th><th>Aporte na escala</th><th>Atingido</th><th style="text-align:left">Onde investir</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    <p class="hint" style="margin-top:10px">Rentabilidade real: ${fmtPct(p.rCurto/100,2)} até 2 anos, ${fmtPct(p.rMedio/100,2)} de 2 a 5 anos e ${fmtPct(p.rentReal/100,2)} acima de 5 anos. A aposentadoria parte do aporte necessário da primeira página (${fmtBRL(G.apNeed)}/mês, ${sById(G.sel.strat).name.toLowerCase()}).</p>
+  </section>
+  ${alerts.length?`<section class="card"><h2>Pontos de atenção</h2><div class="alerts">${alerts.map(([c,t])=>`<div class="alert ${c}"><span class="dot"></span><span>${t}</span></div>`).join("")}</div></section>`:""}`;
+}
 
 function renderA(p,res,best){
   const sel=p.estrategia==="auto"?best:res.find(r=>r.strat===p.estrategia)||best;
@@ -751,7 +1016,7 @@ function renderB(p,res,best){
 
   $("resB").innerHTML=`
   <div class="verdict">
-    <span class="eyebrow">${p.nome?esc(p.nome):"Estratégia indicada"}</span>
+    <span class="eyebrow">Estratégia vencedora${p.nome?" · "+esc(p.nome):""}</span>
     <h2>${headline}</h2>
     <p>${why.join(" ")}</p>
     <div class="kpis">
