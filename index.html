@@ -819,7 +819,7 @@ function buildPdf(R){
   const p=R.p,LM=14,RM=196,BOT=268;let y=0;
   const T=(t,x,yy,o)=>doc.text(pdfTxt(t),x,yy,o);
   const need=h=>{if(y+h>BOT){doc.addPage();y=20}};
-  const h2=t=>{need(14);y+=4;doc.setFont("helvetica","bold");doc.setFontSize(12.5);doc.setTextColor(...NAVY);T(t,LM,y);y+=2.5;doc.setDrawColor(...GOLD);doc.setLineWidth(.4);doc.line(LM,y,LM+18,y);y+=6};
+  const h2=t=>{need(14);y+=3;doc.setFont("helvetica","bold");doc.setFontSize(12.5);doc.setTextColor(...NAVY);T(t,LM,y);y+=2.5;doc.setDrawColor(...GOLD);doc.setLineWidth(.4);doc.line(LM,y,LM+18,y);y+=6};
   const para=(t,size=9.5,color=INK,style="normal",indent=0)=>{doc.setFont("helvetica",style);doc.setFontSize(size);doc.setTextColor(...color);
     const ls=doc.splitTextToSize(pdfTxt(t),RM-LM-indent);ls.forEach(l=>{need(size*.45);doc.text(l,LM+indent,y);y+=size*.45});};
   // cabeçalho
@@ -848,7 +848,7 @@ function buildPdf(R){
     top3.forEach((n,i)=>{const x=LM+i*(bw+4);doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...MUTED);T(n[0].toUpperCase(),x,y);
       doc.setFont("times","bold");doc.setFontSize(14);doc.setTextColor(...(i===2&&!D.noRumo?TERRA:INK));T(n[1],x,y+6.5)});
     y+=14;
-    const H=48,base=y+H+6,n=D.pts.length,gap=4,cw=(RM-LM-gap*(n-1))/n,colW=Math.min(cw,30);
+    const H=36,base=y+H+6,n=D.pts.length,gap=4,cw=(RM-LM-gap*(n-1))/n,colW=Math.min(cw,30);
     D.pts.forEach((pt,i)=>{const cx=LM+i*(cw+gap)+(cw-colW)/2,h=Math.max(1,pt.need/D.top*H),last=i===n-1;
       doc.setFillColor(...(last?GOLD:GOLDS));doc.rect(cx,base-h,colW,h,"F");
       const hn=Math.min(H+4,pt.now/D.top*H);doc.setDrawColor(...NAVY);doc.setLineWidth(.35);doc.setLineDashPattern([1.2,1],0);doc.line(cx-1,base-hn,cx+colW+1,base-hn);doc.setLineDashPattern([],0);
@@ -862,9 +862,9 @@ function buildPdf(R){
   h2("O que fazer, em ordem");
   R.st.forEach((x,i)=>{need(14);doc.setFillColor(...NAVY);doc.circle(LM+2.6,y-1.2,2.6,"F");doc.setTextColor(246,241,234);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.text(String(i+1),LM+2.6,y-.1,{align:"center"});
     doc.setTextColor(...INK);doc.setFontSize(10);const tl=doc.splitTextToSize(pdfTxt(x.t),RM-LM-9);tl.forEach(l=>{doc.text(l,LM+8,y);y+=4.6});
-    para(x.d,8.8,MUTED,"normal",8);y+=3});
+    para(x.d,8.8,MUTED,"normal",8);y+=2.2});
   const tbl=(head,body,cols,opts={})=>{doc.autoTable({startY:y,head:[head],body,theme:"grid",
-    styles:{font:"helvetica",fontSize:8.3,cellPadding:2.4,textColor:INK,lineColor:LINE,lineWidth:.2,overflow:"linebreak"},
+    styles:{font:"helvetica",fontSize:8.2,cellPadding:1.7,textColor:INK,lineColor:LINE,lineWidth:.2,overflow:"linebreak"},
     headStyles:{fillColor:NAVY,textColor:[246,241,234]},columnStyles:cols,margin:{left:LM,right:210-RM,bottom:30,top:20},rowPageBreak:"avoid",...opts});
     y=(doc.lastAutoTable?doc.lastAutoTable.finalY:y)+6};
   // escala de aportes
