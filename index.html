@@ -676,9 +676,9 @@ const regName=r=>r.strat==="fora"?"IR 15%":r.regime==="reg"?"Regressivo":"Progre
 function niceStep(v){const p=Math.pow(10,Math.floor(Math.log10(v||1)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
 const T=(x,y,s,a="end",st="")=>`<text x="${x}" y="${y}" text-anchor="${a}" style="fill:var(--muted);font-size:11px;font-family:var(--f-body);${st}">${s}</text>`;
 function axes(W,H,L,R,Tp,B,top,step,fmt){let g="";for(let v=0;v<=top+1e-6;v+=step){const y=Tp+(1-v/top)*(H-Tp-B);g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" style="stroke:var(--line);stroke-width:1"/>`+T(L-8,y+4,fmt(v))}return g}
-function chartPatrimonio(series,p){
+function chartPatrimonio(series,p,meta){
   const W=680,H=270,L=66,R=14,Tp=16,B=30;
-  const maxV=Math.max(1,...series.flatMap(s=>s.path.map(x=>x.v)));
+  const maxV=Math.max(1,meta||0,...series.flatMap(s=>s.path.map(x=>x.v)));
   const step=niceStep(maxV/4),top=Math.ceil(maxV/step)*step;
   const a0=p.idade,a1=p.idadeFim,x=a=>L+(a-a0)/(a1-a0||1)*(W-L-R),y=v=>Tp+(1-v/top)*(H-Tp-B);
   let g=axes(W,H,L,R,Tp,B,top,step,fmtK);
@@ -688,7 +688,11 @@ function chartPatrimonio(series,p){
   series.forEach((s,i)=>{const d=s.path.map((pt,j)=>(j?"L":"M")+x(pt.age).toFixed(1)+" "+y(pt.v).toFixed(1)).join(" ");
     if(s.area)g+=`<path d="${d} L${x(s.path[s.path.length-1].age).toFixed(1)} ${y(0)} L${x(s.path[0].age).toFixed(1)} ${y(0)} Z" style="fill:${s.color};opacity:.12"/>`;
     g+=`<path d="${d}" style="fill:none;stroke:${s.color};stroke-width:${s.w||2};stroke-linejoin:round;${s.dash?"stroke-dasharray:6 5":""}"/>`});
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Patrimônio por idade">${g}</svg>`;
+  if(meta>0){const ym=y(meta);
+    g+=`<line x1="${L}" x2="${xa}" y1="${ym}" y2="${ym}" style="stroke:var(--terra);stroke-width:1.5;stroke-dasharray:3 4"/>`
+      +`<circle cx="${xa}" cy="${ym}" r="6" style="fill:var(--terra);stroke:var(--surface);stroke-width:2"><title>Patrimônio necessário aos ${p.idadeApos}: ${fmtBRL(meta)}</title></circle>`
+      +T(xa-10,ym-9,"precisa ter "+fmtK(meta),"end","fill:var(--terra);font-weight:700;font-size:12px")}
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Patrimônio por idade${meta>0?`; patrimônio necessário aos ${p.idadeApos}: ${fmtK(meta)}`:""}">${g}</svg>`;
 }
 function chartRenda(dec,p){
   const W=680,H=260,L=66,R=14,Tp=16,B=30;
@@ -972,8 +976,10 @@ function renderA(p,res,best){
 
   <section class="card">
     <h2>Patrimônio ao longo da vida <span class="note">valores de hoje, bruto de IR</span></h2>
-    ${chartPatrimonio(series,p)}
-    <div class="legend">${series.map(x=>`<span><i class="ln" style="background:${x.color}"></i>${x.name}</span>`).join("")}</div>
+    ${(()=>{const D=stairData(p,sel,nec,alvo),meta=D?D.meta:0,gap=meta-sel.saldo;
+      return `${meta>0?`<div class="goal-row" style="margin-bottom:8px"><span>Precisa ter aos ${p.idadeApos} <b>${fmtK(meta)}</b></span><span>Com o aporte atual <b>${fmtK(sel.saldo)}</b></span><span>${gap>1?`Faltam <b class="delta-neg">${fmtK(gap)}</b>`:`<b class="delta-pos">Meta alcançada</b>`}</span></div>`:""}
+      ${chartPatrimonio(series,p,meta)}
+      <div class="legend">${series.map(x=>`<span><i class="ln" style="background:${x.color}"></i>${x.name}</span>`).join("")}${meta>0?`<span><i style="background:var(--terra);width:10px;height:10px;border-radius:50%"></i>Patrimônio necessário aos ${p.idadeApos}</span>`:""}</div>`})()}
   </section>
 
   <section class="card">
